@@ -362,13 +362,58 @@ double tolerance = CrsUtil.getTolerance(wkid);
 Map<Integer, CoordinateReferenceSystem> crsList = CrsUtil.getSupportedCRSList();
 ```
 
+### 数据模型
+
+#### TopologyValidationResult - 拓扑验证结果
+
+用于封装几何对象拓扑验证的结果，包含验证是否通过、错误位置、错误类型和错误信息：
+
+```java
+TopologyValidationResult result = JtsGeometryUtil.isValid(geom);
+if (!result.isValid()) {
+    System.out.println("错误类型: " + result.getErrorType().getDesc());
+    System.out.println("错误位置: " + result.getCoordinate());
+    System.out.println("错误信息: " + result.getMessage());
+}
+```
+
+#### SimpleGeometryResult - 简单几何判断结果
+
+用于封装几何对象简单性检查的结果，简单几何是指不存在自相交或重复点的几何对象：
+
+```java
+SimpleGeometryResult result = JtsGeometryUtil.isSimple(geom);
+if (!result.isSimple()) {
+    System.out.println("非简单点位置: " + result.getNonSimplePts());
+}
+```
+
+#### TopologyValidationErrorType - 拓扑错误类型
+
+定义几何对象拓扑验证中可能出现的各类错误：
+
+| 错误类型 | 说明 |
+|---------|------|
+| `ERROR` | 拓扑检查错误 |
+| `REPEATED_POINT` | 点重叠 |
+| `HOLE_OUTSIDE_SHELL` | 洞在图形外 |
+| `NESTED_HOLES` | 洞重叠 |
+| `DISCONNECTED_INTERIOR` | 图形内部不连通 |
+| `SELF_INTERSECTION` | 自相交 |
+| `RING_SELF_INTERSECTION` | 环自相交 |
+| `NESTED_SHELLS` | 图形重叠 |
+| `DUPLICATE_RINGS` | 环重复 |
+| `TOO_FEW_POINTS` | 点太少无法构成有效几何 |
+| `INVALID_COORDINATE` | 无效坐标 |
+| `RING_NOT_CLOSED` | 环未闭合 |
+
 ### API模块概览
 
 | 包名 | 说明 |
 |------|------|
-| `com.znlgis.ogu4j.model.layer` | 图层模型类（OguLayer、OguFeature、OguField等） |
-| `com.znlgis.ogu4j.model` | 数据模型类（DbConnBaseModel、GdbGroupModel、TopologyValidationResult等） |
-| `com.znlgis.ogu4j.enums` | 枚举类型（GeometryType、FieldDataType、GisEngineType、DataFormatType等） |
+| `com.znlgis.ogu4j.model.layer` | 图层模型类（OguLayer、OguFeature、OguField、OguFieldValue、OguCoordinate、OguFeatureFilter、OguLayerMetadata） |
+| `com.znlgis.ogu4j.model` | 数据模型类（DbConnBaseModel、GdbGroupModel、TopologyValidationResult、SimpleGeometryResult） |
+| `com.znlgis.ogu4j.enums` | 枚举类型（GeometryType、FieldDataType、GisEngineType、DataFormatType、TopologyValidationErrorType） |
 | `com.znlgis.ogu4j.geometry` | 几何处理工具（JtsGeometryUtil、EsriGeometryUtil、GeometryConverter） |
 | `com.znlgis.ogu4j.datasource` | 数据源工具类（ShpUtil、PostgisUtil、OgrUtil、GeotoolsUtil、GtTxtUtil、OguLayerConverter） |
 | `com.znlgis.ogu4j.common` | 通用工具类（CrsUtil、ZipUtil、EncodingUtil、SortUtil、NumUtil、GdalCmdUtil） |
@@ -537,13 +582,58 @@ OguLayerConverter.toFileGDB(layer, gdbPath, "dataset", "layerName", GisEngineTyp
 | **Zip4j** | 2.11.5 | ZIP compression/decompression library |
 | **Lombok** | 1.18.36 | Java annotation library to simplify code writing |
 
+### Data Models
+
+#### TopologyValidationResult - Topology Validation Result
+
+Encapsulates the result of geometry topology validation, including validation status, error location, error type, and error message:
+
+```java
+TopologyValidationResult result = JtsGeometryUtil.isValid(geom);
+if (!result.isValid()) {
+    System.out.println("Error Type: " + result.getErrorType().getDesc());
+    System.out.println("Error Location: " + result.getCoordinate());
+    System.out.println("Error Message: " + result.getMessage());
+}
+```
+
+#### SimpleGeometryResult - Simple Geometry Check Result
+
+Encapsulates the result of geometry simplicity check. A simple geometry has no self-intersections or repeated points:
+
+```java
+SimpleGeometryResult result = JtsGeometryUtil.isSimple(geom);
+if (!result.isSimple()) {
+    System.out.println("Non-simple point locations: " + result.getNonSimplePts());
+}
+```
+
+#### TopologyValidationErrorType - Topology Error Types
+
+Defines various topology validation error types for geometry objects:
+
+| Error Type | Description |
+|------------|-------------|
+| `ERROR` | Topology check error |
+| `REPEATED_POINT` | Repeated point |
+| `HOLE_OUTSIDE_SHELL` | Hole outside shell |
+| `NESTED_HOLES` | Nested holes |
+| `DISCONNECTED_INTERIOR` | Disconnected interior |
+| `SELF_INTERSECTION` | Self-intersection |
+| `RING_SELF_INTERSECTION` | Ring self-intersection |
+| `NESTED_SHELLS` | Nested shells |
+| `DUPLICATE_RINGS` | Duplicate rings |
+| `TOO_FEW_POINTS` | Too few points to form valid geometry |
+| `INVALID_COORDINATE` | Invalid coordinate |
+| `RING_NOT_CLOSED` | Ring not closed |
+
 ### API Overview
 
 | Package | Description |
 |---------|-------------|
-| `com.znlgis.ogu4j.model.layer` | Layer model classes (OguLayer, OguFeature, OguField, etc.) |
-| `com.znlgis.ogu4j.model` | Data model classes (DbConnBaseModel, GdbGroupModel, TopologyValidationResult, etc.) |
-| `com.znlgis.ogu4j.enums` | Enumerations (GeometryType, FieldDataType, GisEngineType, DataFormatType) |
+| `com.znlgis.ogu4j.model.layer` | Layer model classes (OguLayer, OguFeature, OguField, OguFieldValue, OguCoordinate, OguFeatureFilter, OguLayerMetadata) |
+| `com.znlgis.ogu4j.model` | Data model classes (DbConnBaseModel, GdbGroupModel, TopologyValidationResult, SimpleGeometryResult) |
+| `com.znlgis.ogu4j.enums` | Enumerations (GeometryType, FieldDataType, GisEngineType, DataFormatType, TopologyValidationErrorType) |
 | `com.znlgis.ogu4j.geometry` | Geometry utilities (JtsGeometryUtil, EsriGeometryUtil, GeometryConverter) |
 | `com.znlgis.ogu4j.datasource` | Data source utilities (ShpUtil, PostgisUtil, OgrUtil, GeotoolsUtil, GtTxtUtil, OguLayerConverter) |
 | `com.znlgis.ogu4j.common` | Common utilities (CrsUtil, ZipUtil, EncodingUtil, SortUtil, NumUtil, GdalCmdUtil) |
