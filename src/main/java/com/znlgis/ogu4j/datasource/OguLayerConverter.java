@@ -63,8 +63,8 @@ import java.util.concurrent.TimeUnit;
  * @author znlgis
  * @since 1.0.0
  */
-public class SimpleLayerConverter {
-    private SimpleLayerConverter() {
+public class OguLayerConverter {
+    private OguLayerConverter() {
         throw new IllegalStateException("Utility class");
     }
 
@@ -255,7 +255,7 @@ public class SimpleLayerConverter {
         gisEngineType = GisEngineType.getGisEngineType(gisEngineType);
         if (gisEngineType == GisEngineType.GDAL) {
             String layerName = FileUtil.mainName(geojsonPath);
-            return OgrUtil.layer2SimpleLayer(DataFormatType.GEOJSON, geojsonPath, layerName, null, null);
+            return OgrUtil.layer2OguLayer(DataFormatType.GEOJSON, geojsonPath, layerName, null, null);
         } else {
             File file = new File(geojsonPath);
             Charset encoding = EncodingUtil.getFileEncoding(file);
@@ -295,7 +295,7 @@ public class SimpleLayerConverter {
         gisEngineType = GisEngineType.getGisEngineType(gisEngineType);
         if (gisEngineType == GisEngineType.GDAL) {
             String layerName = FileUtil.mainName(geojsonPath);
-            OgrUtil.simpleLayer2Layer(DataFormatType.GEOJSON, geojsonPath, layer, layerName, null);
+            OgrUtil.oguLayer2Layer(DataFormatType.GEOJSON, geojsonPath, layer, layerName, null);
         } else {
             SimpleFeatureCollection featureCollection = toSimpleFeatureCollection(layer);
             GeometryJSON gjson = new GeometryJSON(16);
@@ -333,7 +333,7 @@ public class SimpleLayerConverter {
             gdal.SetConfigOption("SHAPE_ENCODING", shpCharset.name());
             String shpDir = FileUtil.getParent(shpPath, 1);
             String shpName = FileUtil.mainName(shpPath);
-            return OgrUtil.layer2SimpleLayer(DataFormatType.SHP, shpDir, shpName, attributeFilter, spatialFilterWkt);
+            return OgrUtil.layer2OguLayer(DataFormatType.SHP, shpDir, shpName, attributeFilter, spatialFilterWkt);
         } else {
             File file = new File(shpPath);
             ShapefileDataStore shpDataStore = new ShapefileDataStore(file.toURI().toURL());
@@ -370,7 +370,7 @@ public class SimpleLayerConverter {
             options.add("ENCODING=UTF-8");
             String shpDir = FileUtil.getParent(shpPath, 1);
             String shpName = FileUtil.mainName(shpPath);
-            OgrUtil.simpleLayer2Layer(DataFormatType.SHP, shpDir, layer, shpName, options);
+            OgrUtil.oguLayer2Layer(DataFormatType.SHP, shpDir, layer, shpName, options);
         } else {
             File shapeFile = new File(shpPath);
             SimpleFeatureCollection featureCollection = toSimpleFeatureCollection(layer);
@@ -432,7 +432,7 @@ public class SimpleLayerConverter {
     public static OguLayer fromFileGDB(String gdbPath, String layerName, String attributeFilter, String spatialFilterWkt, GisEngineType gisEngineType) {
         gisEngineType = GisEngineType.getGisEngineType(gisEngineType);
         if (gisEngineType == GisEngineType.GDAL) {
-            return OgrUtil.layer2SimpleLayer(DataFormatType.FILEGDB, gdbPath, layerName, attributeFilter, spatialFilterWkt);
+            return OgrUtil.layer2OguLayer(DataFormatType.FILEGDB, gdbPath, layerName, attributeFilter, spatialFilterWkt);
         } else {
             throw new RuntimeException("GDB数据源需要GDAL支持");
         }
@@ -465,7 +465,7 @@ public class SimpleLayerConverter {
                 options = new Vector();
                 options.add("FEATURE_DATASET=" + featureDataset);
             }
-            OgrUtil.simpleLayer2Layer(DataFormatType.FILEGDB, gdbPath, layer, layerName, options);
+            OgrUtil.oguLayer2Layer(DataFormatType.FILEGDB, gdbPath, layer, layerName, options);
         } else {
             throw new RuntimeException("GDB数据源需要GDAL支持");
         }
@@ -489,7 +489,7 @@ public class SimpleLayerConverter {
     public static OguLayer fromPostGIS(DbConnBaseModel dbConnBaseModel, String layerName, String attributeFilter, String spatialFilterWkt, GisEngineType gisEngineType) {
         gisEngineType = GisEngineType.getGisEngineType(gisEngineType);
         if (gisEngineType == GisEngineType.GDAL) {
-            return OgrUtil.layer2SimpleLayer(DataFormatType.POSTGIS, PostgisUtil.toGdalPostgisConnStr(dbConnBaseModel), layerName, attributeFilter, spatialFilterWkt);
+            return OgrUtil.layer2OguLayer(DataFormatType.POSTGIS, PostgisUtil.toGdalPostgisConnStr(dbConnBaseModel), layerName, attributeFilter, spatialFilterWkt);
         } else {
             JDBCDataStore dataStore = PostgisUtil.getPostgisDataStore(dbConnBaseModel);
             SimpleFeatureSource source = dataStore.getFeatureSource(layerName);
@@ -519,7 +519,7 @@ public class SimpleLayerConverter {
 
         gisEngineType = GisEngineType.getGisEngineType(gisEngineType);
         if (gisEngineType == GisEngineType.GDAL) {
-            OgrUtil.simpleLayer2Layer4Postgis(DataFormatType.POSTGIS, dbConnBaseModel, layer, layerName, null);
+            OgrUtil.oguLayer2Layer4Postgis(DataFormatType.POSTGIS, dbConnBaseModel, layer, layerName, null);
         } else {
             SimpleFeatureCollection featureCollection = toSimpleFeatureCollection(layer);
             SimpleFeatureType simpleFeatureType = featureCollection.getSchema();

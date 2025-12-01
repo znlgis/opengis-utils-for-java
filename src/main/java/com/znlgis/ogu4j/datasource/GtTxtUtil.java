@@ -46,9 +46,9 @@ public class GtTxtUtil {
     }
 
     /**
-     * 保存SimpleLayer为TXT文件
+     * 保存OguLayer为TXT文件
      *
-     * @param layer      SimpleLayer
+     * @param layer      OguLayer
      * @param txtPath    TXT文件路径
      * @param metadata   元数据信息
      * @param fieldNames 字段名称顺序
@@ -185,11 +185,11 @@ public class GtTxtUtil {
     }
 
     /**
-     * 加载TXT文件为SimpleLayer
+     * 加载TXT文件为OguLayer
      *
      * @param txtPath TXT文件路径
      * @param fields  字段定义，如果为null则使用默认定义
-     * @return SimpleLayer
+     * @return OguLayer
      */
     @SneakyThrows
     public static OguLayer loadTxt(String txtPath, List<OguField> fields) {
