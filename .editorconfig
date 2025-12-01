@@ -1,0 +1,61 @@
+# EditorConfig 配置文件
+# 遵照阿里巴巴Java开发手册(黄山版)规范
+# https://github.com/alibaba/p3c
+
+# 顶级配置
+root = true
+
+# 所有文件的默认配置
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Java 文件配置
+# 阿里巴巴Java开发手册规定:
+# 1. 使用4个空格缩进，禁止使用tab字符
+# 2. 单行字符数限制不超过120个
+[*.java]
+indent_style = space
+indent_size = 4
+max_line_length = 120
+
+# XML 文件配置（包括pom.xml、Spring配置等）
+[*.xml]
+indent_style = space
+indent_size = 4
+
+# JSON 文件配置
+[*.json]
+indent_style = space
+indent_size = 2
+
+# YAML 文件配置
+[*.{yml,yaml}]
+indent_style = space
+indent_size = 2
+
+# Properties 文件配置
+[*.properties]
+indent_style = space
+indent_size = 4
+
+# Markdown 文件配置
+# Markdown中的尾随空格可能是有意义的（如换行）
+[*.md]
+trim_trailing_whitespace = false
+
+# Makefile 必须使用tab
+[Makefile]
+indent_style = tab
+
+# Shell 脚本配置
+[*.sh]
+indent_style = space
+indent_size = 4
+
+# SQL 文件配置
+[*.sql]
+indent_style = space
+indent_size = 4
