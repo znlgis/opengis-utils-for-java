@@ -9,9 +9,8 @@ import com.znlgis.ogu4j.common.CrsUtil;
 import com.znlgis.ogu4j.enums.DataFormatType;
 import com.znlgis.ogu4j.enums.FieldDataType;
 import com.znlgis.ogu4j.enums.GeometryType;
-import com.znlgis.ogu4j.geometry.EsriGeometryUtil;
-import com.znlgis.ogu4j.geometry.GeometryConverter;
-import com.znlgis.ogu4j.geometry.JtsGeometryUtil;
+import com.znlgis.ogu4j.exception.EngineNotSupportedException;
+import com.znlgis.ogu4j.geometry.GeometryUtil;
 import com.znlgis.ogu4j.model.layer.OguFeature;
 import com.znlgis.ogu4j.model.layer.OguField;
 import com.znlgis.ogu4j.model.layer.OguFieldValue;
@@ -33,8 +32,11 @@ import java.util.concurrent.TimeUnit;
  * <p>
  * 提供基于GDAL/OGR库的GIS数据读写功能，支持Shapefile、FileGDB、GeoJSON、PostGIS等多种格式。
  * 使用前需确保GDAL环境已正确安装和配置。
- * 所有方法均为静态方法，无需实例化即可使用。
  * </p>
+ *
+ * @see com.znlgis.ogu4j.engine.GdalEngine
+ * @see com.znlgis.ogu4j.engine.GdalLayerReader
+ * @see com.znlgis.ogu4j.engine.GdalLayerWriter
  */
 public class OgrUtil {
     @Getter
@@ -58,11 +60,11 @@ public class OgrUtil {
     /**
      * 检查GDAL环境是否已正确初始化
      *
-     * @throws RuntimeException 如果OGR初始化失败
+     * @throws EngineNotSupportedException 如果OGR初始化失败
      */
-    public static void checkGdalEnv() {
+    public static void checkGdalEnv() throws EngineNotSupportedException {
         if (!Boolean.TRUE.equals(ogrInitSuccess)) {
-            throw new RuntimeException("OGR初始化失败");
+            throw new EngineNotSupportedException("OGR初始化失败");
         }
     }
 
@@ -204,7 +206,7 @@ public class OgrUtil {
         }
 
         if (CharSequenceUtil.isNotBlank(spatialFilterWkt)) {
-            spatialFilterWkt = EsriGeometryUtil.simplify(spatialFilterWkt, oguLayer.getWkid());
+            spatialFilterWkt = GeometryUtil.simplifyWkt(spatialFilterWkt, oguLayer.getWkid());
             Geometry spatialFilter = ogr.CreateGeometryFromWkt(spatialFilterWkt);
             layer.SetSpatialFilter(spatialFilter);
         }
@@ -213,10 +215,10 @@ public class OgrUtil {
         while (feature != null) {
             OguFeature oguFeature = new OguFeature();
             String wkt = feature.GetGeometryRef().ExportToWkt();
-            oguFeature.setGeometry(EsriGeometryUtil.simplify(wkt, oguLayer.getWkid()));
+            oguFeature.setGeometry(GeometryUtil.simplifyWkt(wkt, oguLayer.getWkid()));
 
             if (oguLayer.getGeometryType() == null) {
-                oguLayer.setGeometryType(JtsGeometryUtil.geometryType(GeometryConverter.wkt2Geometry(wkt)));
+                oguLayer.setGeometryType(GeometryUtil.geometryType(GeometryUtil.wkt2Geometry(wkt)));
             }
 
             long id = feature.GetFID();

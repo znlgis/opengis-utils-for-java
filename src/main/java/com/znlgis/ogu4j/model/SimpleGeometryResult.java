@@ -11,10 +11,10 @@ import java.util.List;
  * <p>
  * 用于封装几何对象简单性检查的结果，包含几何是否简单以及非简单点的坐标列表。
  * 简单几何是指不存在自相交或重复点的几何对象。
- * 主要用于JtsGeometryUtil.isSimple()方法的返回值。
+ * 主要用于GeometryUtil.isSimple()方法的返回值。
  * </p>
  *
- * @see com.znlgis.ogu4j.geometry.JtsGeometryUtil#isSimple(org.locationtech.jts.geom.Geometry)
+ * @see com.znlgis.ogu4j.geometry.GeometryUtil#isSimple(org.locationtech.jts.geom.Geometry)
  */
 @Data
 @AllArgsConstructor

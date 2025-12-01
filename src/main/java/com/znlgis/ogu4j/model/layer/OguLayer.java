@@ -6,6 +6,7 @@ import com.alibaba.fastjson2.JSONReader;
 import com.alibaba.fastjson2.JSONWriter;
 import com.znlgis.ogu4j.common.CrsUtil;
 import com.znlgis.ogu4j.enums.GeometryType;
+import com.znlgis.ogu4j.exception.LayerValidationException;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -98,19 +99,19 @@ public class OguLayer implements Serializable {
     /**
      * 验证图层数据完整性
      *
-     * @throws RuntimeException 验证失败时抛出异常
+     * @throws LayerValidationException 验证失败时抛出异常
      */
     public void validate() {
         if (this.getGeometryType() == null) {
-            throw new RuntimeException("未获取到几何类型");
+            throw new LayerValidationException("未获取到几何类型");
         }
 
         if (CharSequenceUtil.isBlank(this.getName())) {
-            throw new RuntimeException("未获取到图层名称");
+            throw new LayerValidationException("未获取到图层名称");
         }
 
         if (this.getWkid() == null) {
-            throw new RuntimeException("未获取到坐标系");
+            throw new LayerValidationException("未获取到坐标系");
         }
 
         if (this.getTolerance() == null) {

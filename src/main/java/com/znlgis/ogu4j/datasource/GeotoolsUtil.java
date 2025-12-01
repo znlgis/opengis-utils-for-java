@@ -2,8 +2,7 @@ package com.znlgis.ogu4j.datasource;
 
 import cn.hutool.core.text.CharSequenceUtil;
 import com.znlgis.ogu4j.common.CrsUtil;
-import com.znlgis.ogu4j.geometry.EsriGeometryUtil;
-import com.znlgis.ogu4j.geometry.GeometryConverter;
+import com.znlgis.ogu4j.geometry.GeometryUtil;
 import lombok.SneakyThrows;
 import org.geotools.data.DataUtilities;
 import org.geotools.data.simple.SimpleFeatureCollection;
@@ -57,9 +56,9 @@ public class GeotoolsUtil {
         FilterFactory ff = CommonFactoryFinder.getFilterFactory();
         if (CharSequenceUtil.isNotBlank(spatialFilterWkt)) {
             Map.Entry<Integer, CoordinateReferenceSystem> kv = CrsUtil.standardizeCRS(featureSource.getSchema().getCoordinateReferenceSystem());
-            spatialFilterWkt = EsriGeometryUtil.simplify(spatialFilterWkt, kv.getKey());
+            spatialFilterWkt = GeometryUtil.simplifyWkt(spatialFilterWkt, kv.getKey());
             sfilter = ff.intersects(ff.property(featureSource.getSchema().getGeometryDescriptor().getLocalName()),
-                    ff.literal(GeometryConverter.wkt2Geometry(spatialFilterWkt)));
+                    ff.literal(GeometryUtil.wkt2Geometry(spatialFilterWkt)));
         }
 
         if (afilter == null) {

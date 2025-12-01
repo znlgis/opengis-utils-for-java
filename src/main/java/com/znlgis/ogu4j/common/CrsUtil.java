@@ -1,7 +1,7 @@
 package com.znlgis.ogu4j.common;
 
 import cn.hutool.core.util.ObjectUtil;
-import com.znlgis.ogu4j.geometry.GeometryConverter;
+import com.znlgis.ogu4j.geometry.GeometryUtil;
 import com.znlgis.ogu4j.model.layer.OguFeature;
 import com.znlgis.ogu4j.model.layer.OguLayer;
 import lombok.SneakyThrows;
@@ -157,7 +157,7 @@ public class CrsUtil {
      * @return 所在带号
      */
     public static int getDh(String wkt) {
-        Geometry geom = GeometryConverter.wkt2Geometry(wkt);
+        Geometry geom = GeometryUtil.wkt2Geometry(wkt);
         return getDh(geom);
     }
 
@@ -233,7 +233,7 @@ public class CrsUtil {
      * @return 转换后的WKT格式字符串，如果转换失败返回null
      */
     public static String transform(String wkt, Integer sourceWkid, Integer targetWkid) {
-        Geometry geom = GeometryConverter.wkt2Geometry(wkt);
+        Geometry geom = GeometryUtil.wkt2Geometry(wkt);
         geom = transform(geom, sourceWkid, targetWkid);
         return geom == null ? null : geom.toText();
     }
