@@ -5,9 +5,6 @@ import org.locationtech.jts.geom.*;
 
 /**
  * GIS图形类型枚举
- *
- * @author znlgis
- * {@code @date} 2023/6/29
  */
 @Getter
 public enum GeometryType {

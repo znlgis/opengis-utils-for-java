@@ -12,9 +12,6 @@ import java.nio.charset.Charset;
  * 提供ZIP文件的压缩和解压功能，支持自定义编码。
  * 所有方法均为静态方法，无需实例化即可使用。
  * </p>
- *
- * @author znlgis
- * @since 1.0.0
  */
 public class ZipUtil {
     private ZipUtil() {

@@ -6,8 +6,6 @@ import java.util.List;
 
 /**
  * GDB图层组模型
- *
- * @author znlgis
  */
 @Data
 public class GdbGroupModel {

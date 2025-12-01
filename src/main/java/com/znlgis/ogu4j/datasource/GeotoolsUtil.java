@@ -23,9 +23,6 @@ import java.util.Map;
  * 支持属性过滤和空间过滤。
  * 所有方法均为静态方法，无需实例化即可使用。
  * </p>
- *
- * @author znlgis
- * @since 1.0.0
  */
 public class GeotoolsUtil {
     private GeotoolsUtil() {

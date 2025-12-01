@@ -25,9 +25,6 @@ import java.util.List;
  * 提供基于JTS（Java Topology Suite）的几何属性查询、空间关系判断、空间分析和几何处理功能。
  * 所有方法均为静态方法，无需实例化即可使用。
  * </p>
- *
- * @author znlgis
- * @since 1.0.0
  */
 public class JtsGeometryUtil {
     private JtsGeometryUtil() {

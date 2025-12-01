@@ -14,9 +14,6 @@ import java.util.List;
  * 表示GIS图层中的一个地理要素，包含要素ID、几何信息（WKT格式）和属性值集合。
  * 提供属性值的获取和设置方法。
  * </p>
- *
- * @author znlgis
- * @since 1.0.0
  */
 @Data
 @AllArgsConstructor

@@ -8,8 +8,6 @@ import java.time.LocalTime;
 
 /**
  * GDAL字段类型
- *
- * @author znlgis
  */
 @Getter
 public enum FieldDataType {

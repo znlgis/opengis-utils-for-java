@@ -4,8 +4,6 @@ import lombok.Getter;
 
 /**
  * 拓扑检查错误类型枚举
- *
- * @author znlgis
  */
 
 @Getter

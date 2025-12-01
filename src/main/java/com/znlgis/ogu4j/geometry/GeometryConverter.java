@@ -15,9 +15,6 @@ import java.io.StringWriter;
  * 提供JTS Geometry与各种几何格式（WKT、GeoJSON、ESRI JSON）之间的相互转换功能。
  * 所有方法均为静态方法，无需实例化即可使用。
  * </p>
- *
- * @author znlgis
- * @since 1.0.0
  */
 public class GeometryConverter {
     private GeometryConverter() {

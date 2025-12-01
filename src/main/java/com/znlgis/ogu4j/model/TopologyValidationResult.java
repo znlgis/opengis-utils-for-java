@@ -7,8 +7,6 @@ import org.locationtech.jts.geom.Coordinate;
 
 /**
  * 拓扑错误模型
- *
- * @author znlgis
  */
 @Data
 @AllArgsConstructor

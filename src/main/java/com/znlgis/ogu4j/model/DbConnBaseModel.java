@@ -4,15 +4,13 @@ import lombok.Data;
 
 /**
  * 数据库连接信息基类
- *
- * @author znlgis
  */
 @Data
 public class DbConnBaseModel {
     /**
      * 数据库类型
      */
-    private String dbtype;
+    private String dbType;
     /**
      * 数据库地址
      */

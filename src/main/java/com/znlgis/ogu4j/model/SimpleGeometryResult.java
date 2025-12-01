@@ -8,9 +8,6 @@ import java.util.List;
 
 /**
  * 简单几何判断模型
- *
- * @author znlgis
- * {@code @date} 2023/6/29
  */
 @Data
 @AllArgsConstructor

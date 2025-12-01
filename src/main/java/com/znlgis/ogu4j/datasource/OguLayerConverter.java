@@ -59,9 +59,6 @@ import java.util.concurrent.TimeUnit;
  * 支持使用GeoTools或GDAL/OGR两种引擎进行转换。
  * 所有方法均为静态方法，无需实例化即可使用。
  * </p>
- *
- * @author znlgis
- * @since 1.0.0
  */
 public class OguLayerConverter {
     private OguLayerConverter() {

@@ -12,9 +12,6 @@ import java.nio.charset.StandardCharsets;
  * 提供文件编码自动检测功能，支持UTF-8、GBK、GB2312、GB18030等常见编码。
  * 所有方法均为静态方法，无需实例化即可使用。
  * </p>
- *
- * @author znlgis
- * @since 1.0.0
  */
 public class EncodingUtil {
     private EncodingUtil() {

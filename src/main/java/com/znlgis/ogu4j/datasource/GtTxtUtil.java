@@ -36,9 +36,6 @@ import java.util.*;
  * TXT文件包含属性描述和地块坐标两个主要部分。
  * 所有方法均为静态方法，无需实例化即可使用。
  * </p>
- *
- * @author znlgis
- * @since 1.0.0
  */
 public class GtTxtUtil {
     private GtTxtUtil() {

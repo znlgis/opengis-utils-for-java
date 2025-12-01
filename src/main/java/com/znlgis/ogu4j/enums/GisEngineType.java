@@ -5,8 +5,6 @@ import lombok.Getter;
 
 /**
  * 所支持的GIS引擎类型
- *
- * @author znlgis
  */
 @Getter
 public enum GisEngineType {

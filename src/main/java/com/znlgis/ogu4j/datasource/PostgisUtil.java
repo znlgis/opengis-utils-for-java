@@ -18,9 +18,6 @@ import java.util.Map;
  * 支持GeoTools和GDAL两种方式访问PostGIS。
  * 所有方法均为静态方法，无需实例化即可使用。
  * </p>
- *
- * @author znlgis
- * @since 1.0.0
  */
 public class PostgisUtil {
     private PostgisUtil() {
@@ -35,7 +32,7 @@ public class PostgisUtil {
      */
     private static Map<String, Object> getPostgisInfo(DbConnBaseModel dbConnBaseModel) {
         Map<String, Object> params = new HashMap<>();
-        params.put("dbtype", dbConnBaseModel.getDbtype());
+        params.put("dbtype", dbConnBaseModel.getDbType());
         params.put("host", dbConnBaseModel.getHost());
         params.put("port", dbConnBaseModel.getPort());
         params.put("schema", dbConnBaseModel.getSchema());

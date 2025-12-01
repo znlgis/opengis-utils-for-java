@@ -35,9 +35,6 @@ import java.util.concurrent.TimeUnit;
  * 使用前需确保GDAL环境已正确安装和配置。
  * 所有方法均为静态方法，无需实例化即可使用。
  * </p>
- *
- * @author znlgis
- * @since 1.0.0
  */
 public class OgrUtil {
     @Getter

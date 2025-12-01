@@ -34,9 +34,6 @@ import java.util.Map;
  * 默认支持EPSG:4490-4554范围内的坐标系（中国2000国家大地坐标系及其投影）。
  * 所有方法均为静态方法，无需实例化即可使用。
  * </p>
- *
- * @author znlgis
- * @since 1.0.0
  */
 public class CrsUtil {
     private static Map<Integer, CoordinateReferenceSystem> supportedCRSList;

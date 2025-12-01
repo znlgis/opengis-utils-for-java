@@ -4,8 +4,6 @@ import lombok.Getter;
 
 /**
  * 支持的GIS数据格式枚举
- *
- * @author znlgis
  */
 @Getter
 public enum DataFormatType {
