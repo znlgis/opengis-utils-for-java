@@ -34,11 +34,6 @@ import java.util.concurrent.TimeUnit;
  * <p>
  * 提供基于GDAL/OGR库的GIS数据读写功能，支持Shapefile、FileGDB、GeoJSON、PostGIS等多种格式。
  * 使用前需确保GDAL环境已正确安装和配置。
- * 所有方法均为静态方法，无需实例化即可使用。
- * </p>
- * <p>
- * 推荐使用新的引擎抽象层API（{@link com.znlgis.ogu4j.engine.GdalEngine}）来访问GDAL功能，
- * 现有的静态方法保持向后兼容。
  * </p>
  *
  * @see com.znlgis.ogu4j.engine.GdalEngine

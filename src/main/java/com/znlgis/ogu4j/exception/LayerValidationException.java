@@ -6,10 +6,6 @@ package com.znlgis.ogu4j.exception;
  * 当图层数据验证失败时抛出此异常。
  * 可能的原因包括：缺少必需的属性（如几何类型、图层名称、坐标系等）。
  * </p>
- * <p>
- * 注意：此异常继承自RuntimeException以保持向后兼容性，
- * 因为validate()方法之前抛出的是RuntimeException。
- * </p>
  */
 public class LayerValidationException extends RuntimeException {
 
