@@ -7,7 +7,13 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 /**
- * GDAL字段类型
+ * 字段数据类型枚举
+ * <p>
+ * 定义GIS图层字段支持的数据类型，包括整型、浮点型、字符串、二进制、日期时间等。
+ * 提供与GDAL字段类型代码的映射关系，支持类型代码和Java类之间的相互转换。
+ * </p>
+ *
+ * @see com.znlgis.ogu4j.model.layer.OguField
  */
 @Getter
 public enum FieldDataType {

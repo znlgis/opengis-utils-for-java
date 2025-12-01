@@ -3,7 +3,15 @@ package com.znlgis.ogu4j.enums;
 import lombok.Getter;
 
 /**
- * 支持的GIS数据格式枚举
+ * GIS数据格式类型枚举
+ * <p>
+ * 定义本库支持的GIS数据格式，包括矢量格式（Shapefile、FileGDB等）、
+ * 交换格式（GeoJSON、WKT、ESRI JSON）和数据库格式（PostGIS）。
+ * 提供与GDAL驱动名称的映射关系。
+ * </p>
+ *
+ * @see com.znlgis.ogu4j.datasource.OguLayerConverter
+ * @see com.znlgis.ogu4j.datasource.OgrUtil
  */
 @Getter
 public enum DataFormatType {

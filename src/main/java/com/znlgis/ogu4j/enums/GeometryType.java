@@ -4,7 +4,13 @@ import lombok.Getter;
 import org.locationtech.jts.geom.*;
 
 /**
- * GIS图形类型枚举
+ * GIS几何类型枚举
+ * <p>
+ * 定义GIS系统中支持的几何类型，包括点、线、面及其多部件形式。
+ * 提供几何类型与JTS Geometry类、WKB类型代码之间的映射关系。
+ * </p>
+ *
+ * @see org.locationtech.jts.geom.Geometry
  */
 @Getter
 public enum GeometryType {

@@ -5,7 +5,14 @@ import lombok.Data;
 import java.util.List;
 
 /**
- * GDB图层组模型
+ * FileGDB图层组结构模型
+ * <p>
+ * 用于表示ESRI FileGDB（文件地理数据库）的层级结构，包含要素数据集和图层信息。
+ * 支持嵌套的图层组结构，可完整描述GDB的组织层次。
+ * 主要用于GdalCmdUtil.getGdbDataStructure()方法的返回值。
+ * </p>
+ *
+ * @see com.znlgis.ogu4j.common.GdalCmdUtil#getGdbDataStructure(String)
  */
 @Data
 public class GdbGroupModel {

@@ -84,6 +84,9 @@ public class OguFieldValue implements Serializable {
 
     /**
      * 无参构造函数
+     * <p>
+     * 供JSON反序列化和框架创建空字段值对象使用。
+     * </p>
      */
     public OguFieldValue(){
 

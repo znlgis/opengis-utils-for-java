@@ -22,9 +22,13 @@ import java.util.Optional;
  */
 public class ShpUtil {
     /**
-     * 格式化字段名
+     * 格式化Shapefile字段名称
+     * <p>
+     * Shapefile格式要求字段名称不超过10个字符。
+     * 对于超长字段名，自动截断并添加编号后缀以避免重名。
+     * </p>
      *
-     * @param fields 字段列表
+     * @param fields 字段列表，方法会直接修改列表中字段的名称
      */
     public static void formatFieldName(List<OguField> fields) {
         for (OguField field : fields) {
@@ -46,10 +50,16 @@ public class ShpUtil {
     }
 
     /**
-     * 检查shp文件编码及必要文件
+     * 检查Shapefile文件完整性并获取编码
+     * <p>
+     * 验证Shapefile所需的必要文件（.shp、.shx、.dbf、.prj）是否存在，
+     * 并自动检测文件编码。优先从.cpg文件读取编码，其次从.dbf文件头判断，
+     * 最后默认使用UTF-8。
+     * </p>
      *
-     * @param shpPath shp文件路径
-     * @return 编码
+     * @param shpPath Shapefile文件路径（.shp文件）
+     * @return 文件编码（Charset）
+     * @throws RuntimeException 如果缺少必要文件或CPG文件编码格式错误
      */
     public static Charset check(String shpPath) {
         List<String> shpFiles = CollUtil.newArrayList(".shp", ".shx", ".dbf", ".prj");
