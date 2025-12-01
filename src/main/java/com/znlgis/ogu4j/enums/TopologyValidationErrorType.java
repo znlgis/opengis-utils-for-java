@@ -10,7 +10,7 @@ import lombok.Getter;
  * </p>
  *
  * @see com.znlgis.ogu4j.model.TopologyValidationResult
- * @see com.znlgis.ogu4j.geometry.JtsGeometryUtil#isValid(org.locationtech.jts.geom.Geometry)
+ * @see com.znlgis.ogu4j.geometry.GeometryUtil#isValid(org.locationtech.jts.geom.Geometry)
  */
 
 @Getter

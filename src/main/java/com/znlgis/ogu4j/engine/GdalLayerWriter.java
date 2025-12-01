@@ -7,7 +7,7 @@ import com.znlgis.ogu4j.datasource.PostgisUtil;
 import com.znlgis.ogu4j.enums.DataFormatType;
 import com.znlgis.ogu4j.exception.DataSourceException;
 import com.znlgis.ogu4j.exception.OguException;
-import com.znlgis.ogu4j.geometry.EsriGeometryUtil;
+import com.znlgis.ogu4j.geometry.GeometryUtil;
 import com.znlgis.ogu4j.io.LayerWriter;
 import com.znlgis.ogu4j.model.DbConnBaseModel;
 import com.znlgis.ogu4j.model.layer.OguLayer;
@@ -39,7 +39,7 @@ public class GdalLayerWriter implements LayerWriter {
     public void write(OguLayer layer, String path, String layerName, Map<String, Object> options)
             throws OguException {
         OgrUtil.checkGdalEnv();
-        EsriGeometryUtil.excludeSpecialFields(layer.getFields());
+        GeometryUtil.excludeSpecialFields(layer.getFields());
 
         switch (formatType) {
             case SHP:

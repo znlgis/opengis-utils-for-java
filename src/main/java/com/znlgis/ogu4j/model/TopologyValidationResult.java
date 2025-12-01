@@ -9,10 +9,10 @@ import org.locationtech.jts.geom.Coordinate;
  * 拓扑验证结果模型
  * <p>
  * 用于封装几何对象拓扑验证的结果，包含验证是否通过、错误位置、错误类型和错误信息。
- * 主要用于JtsGeometryUtil.isValid()方法的返回值。
+ * 主要用于GeometryUtil.isValid()方法的返回值。
  * </p>
  *
- * @see com.znlgis.ogu4j.geometry.JtsGeometryUtil#isValid(org.locationtech.jts.geom.Geometry)
+ * @see com.znlgis.ogu4j.geometry.GeometryUtil#isValid(org.locationtech.jts.geom.Geometry)
  */
 @Data
 @AllArgsConstructor

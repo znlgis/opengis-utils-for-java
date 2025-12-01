@@ -10,9 +10,7 @@ import com.znlgis.ogu4j.enums.DataFormatType;
 import com.znlgis.ogu4j.enums.FieldDataType;
 import com.znlgis.ogu4j.enums.GeometryType;
 import com.znlgis.ogu4j.exception.EngineNotSupportedException;
-import com.znlgis.ogu4j.geometry.EsriGeometryUtil;
-import com.znlgis.ogu4j.geometry.GeometryConverter;
-import com.znlgis.ogu4j.geometry.JtsGeometryUtil;
+import com.znlgis.ogu4j.geometry.GeometryUtil;
 import com.znlgis.ogu4j.model.layer.OguFeature;
 import com.znlgis.ogu4j.model.layer.OguField;
 import com.znlgis.ogu4j.model.layer.OguFieldValue;
@@ -208,7 +206,7 @@ public class OgrUtil {
         }
 
         if (CharSequenceUtil.isNotBlank(spatialFilterWkt)) {
-            spatialFilterWkt = EsriGeometryUtil.simplify(spatialFilterWkt, oguLayer.getWkid());
+            spatialFilterWkt = GeometryUtil.simplifyWkt(spatialFilterWkt, oguLayer.getWkid());
             Geometry spatialFilter = ogr.CreateGeometryFromWkt(spatialFilterWkt);
             layer.SetSpatialFilter(spatialFilter);
         }
@@ -217,10 +215,10 @@ public class OgrUtil {
         while (feature != null) {
             OguFeature oguFeature = new OguFeature();
             String wkt = feature.GetGeometryRef().ExportToWkt();
-            oguFeature.setGeometry(EsriGeometryUtil.simplify(wkt, oguLayer.getWkid()));
+            oguFeature.setGeometry(GeometryUtil.simplifyWkt(wkt, oguLayer.getWkid()));
 
             if (oguLayer.getGeometryType() == null) {
-                oguLayer.setGeometryType(JtsGeometryUtil.geometryType(GeometryConverter.wkt2Geometry(wkt)));
+                oguLayer.setGeometryType(GeometryUtil.geometryType(GeometryUtil.wkt2Geometry(wkt)));
             }
 
             long id = feature.GetFID();

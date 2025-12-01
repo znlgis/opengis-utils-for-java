@@ -15,9 +15,7 @@ import com.znlgis.ogu4j.enums.GeometryType;
 import com.znlgis.ogu4j.exception.DataSourceException;
 import com.znlgis.ogu4j.exception.FormatParseException;
 import com.znlgis.ogu4j.exception.OguException;
-import com.znlgis.ogu4j.geometry.EsriGeometryUtil;
-import com.znlgis.ogu4j.geometry.GeometryConverter;
-import com.znlgis.ogu4j.geometry.JtsGeometryUtil;
+import com.znlgis.ogu4j.geometry.GeometryUtil;
 import com.znlgis.ogu4j.io.LayerReader;
 import com.znlgis.ogu4j.model.DbConnBaseModel;
 import com.znlgis.ogu4j.model.layer.OguFeature;
@@ -210,10 +208,10 @@ public class GeoToolsLayerReader implements LayerReader {
                 oguFeature.setId(id);
 
                 String wkt = ((Geometry) feature.getDefaultGeometry()).toText();
-                oguFeature.setGeometry(EsriGeometryUtil.simplify(wkt, layer.getWkid()));
+                oguFeature.setGeometry(GeometryUtil.simplifyWkt(wkt, layer.getWkid()));
 
                 if (layer.getGeometryType() == null) {
-                    layer.setGeometryType(JtsGeometryUtil.geometryType(GeometryConverter.wkt2Geometry(wkt)));
+                    layer.setGeometryType(GeometryUtil.geometryType(GeometryUtil.wkt2Geometry(wkt)));
                 }
 
                 List<OguFieldValue> fieldValues = new ArrayList<>();

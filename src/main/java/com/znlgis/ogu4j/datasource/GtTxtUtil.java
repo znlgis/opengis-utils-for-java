@@ -13,8 +13,7 @@ import com.znlgis.ogu4j.common.NumUtil;
 import com.znlgis.ogu4j.common.CrsUtil;
 import com.znlgis.ogu4j.enums.FieldDataType;
 import com.znlgis.ogu4j.enums.GeometryType;
-import com.znlgis.ogu4j.geometry.EsriGeometryUtil;
-import com.znlgis.ogu4j.geometry.GeometryConverter;
+import com.znlgis.ogu4j.geometry.GeometryUtil;
 import com.znlgis.ogu4j.model.layer.OguCoordinate;
 import com.znlgis.ogu4j.model.layer.OguFeature;
 import com.znlgis.ogu4j.model.layer.OguField;
@@ -92,7 +91,7 @@ public class GtTxtUtil {
         for (OguFeature feature : layer.getFeatures()) {
             // 处理几何
             List<OguCoordinate> coordinates = new ArrayList<>();
-            Geometry geometry = GeometryConverter.wkt2Geometry(feature.getGeometry());
+            Geometry geometry = GeometryUtil.wkt2Geometry(feature.getGeometry());
             if (wkid == null) {
                 zoneNumber = CrsUtil.getDh(geometry);
                 wkid = CrsUtil.getProjectedWkid(zoneNumber);
@@ -405,7 +404,7 @@ public class GtTxtUtil {
             feature.setId(IdUtil.simpleUUID());
             int wkid = 4488 + NumberUtil.parseInt(zoneNumber[0]);
             String wkt = polygon.toText();
-            feature.setGeometry(EsriGeometryUtil.simplify(wkt, wkid));
+            feature.setGeometry(GeometryUtil.simplifyWkt(wkt, wkid));
             features.add(feature);
         });
 

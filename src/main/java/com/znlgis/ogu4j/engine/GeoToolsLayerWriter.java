@@ -11,8 +11,7 @@ import com.znlgis.ogu4j.enums.DataFormatType;
 import com.znlgis.ogu4j.enums.FieldDataType;
 import com.znlgis.ogu4j.exception.DataSourceException;
 import com.znlgis.ogu4j.exception.OguException;
-import com.znlgis.ogu4j.geometry.EsriGeometryUtil;
-import com.znlgis.ogu4j.geometry.GeometryConverter;
+import com.znlgis.ogu4j.geometry.GeometryUtil;
 import com.znlgis.ogu4j.io.LayerWriter;
 import com.znlgis.ogu4j.model.DbConnBaseModel;
 import com.znlgis.ogu4j.model.layer.OguFeature;
@@ -116,7 +115,7 @@ public class GeoToolsLayerWriter implements LayerWriter {
 
     private void writeShapefile(OguLayer layer, String shpPath) throws OguException {
         try {
-            EsriGeometryUtil.excludeSpecialFields(layer.getFields());
+            GeometryUtil.excludeSpecialFields(layer.getFields());
             ShpUtil.formatFieldName(layer.getFields());
 
             File shapeFile = new File(shpPath);
@@ -164,7 +163,7 @@ public class GeoToolsLayerWriter implements LayerWriter {
 
     private void writeGeoJSON(OguLayer layer, String geojsonPath) throws OguException {
         try {
-            EsriGeometryUtil.excludeSpecialFields(layer.getFields());
+            GeometryUtil.excludeSpecialFields(layer.getFields());
 
             SimpleFeatureCollection featureCollection = toSimpleFeatureCollection(layer);
             GeometryJSON gjson = new GeometryJSON(16);
@@ -185,7 +184,7 @@ public class GeoToolsLayerWriter implements LayerWriter {
 
     private void writePostGIS(OguLayer layer, String connStr, String layerName) throws OguException {
         try {
-            EsriGeometryUtil.excludeSpecialFields(layer.getFields());
+            GeometryUtil.excludeSpecialFields(layer.getFields());
 
             DbConnBaseModel dbConnBaseModel = PostgisUtil.parseConnectionString(connStr);
             SimpleFeatureCollection featureCollection = toSimpleFeatureCollection(layer);
@@ -271,7 +270,7 @@ public class GeoToolsLayerWriter implements LayerWriter {
     @SuppressWarnings("unchecked")
     private void writeTxt(OguLayer layer, String txtPath, Map<String, Object> options) throws OguException {
         try {
-            EsriGeometryUtil.excludeSpecialFields(layer.getFields());
+            GeometryUtil.excludeSpecialFields(layer.getFields());
 
             OguLayerMetadata metadata = null;
             List<String> fieldNames = null;
@@ -327,7 +326,7 @@ public class GeoToolsLayerWriter implements LayerWriter {
         for (OguFeature f : layer.getFeatures()) {
             SimpleFeatureBuilder builder = new SimpleFeatureBuilder(featureType);
             if (CharSequenceUtil.isNotBlank(f.getGeometry())) {
-                builder.set("shape", GeometryConverter.wkt2Geometry(f.getGeometry()));
+                builder.set("shape", GeometryUtil.wkt2Geometry(f.getGeometry()));
             } else {
                 builder.set("shape", null);
             }
