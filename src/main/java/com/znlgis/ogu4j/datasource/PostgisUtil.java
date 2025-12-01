@@ -98,6 +98,74 @@ public class PostgisUtil {
     }
 
     /**
+     * 解析GDAL PostGIS连接字符串为DbConnBaseModel
+     * <p>
+     * 将GDAL OGR格式的PG连接字符串解析为数据库连接配置对象。
+     * 支持格式：PG: host=xxx port=xxx dbname=xxx user=xxx password=xxx active_schema=xxx
+     * </p>
+     *
+     * @param connStr GDAL PostGIS连接字符串
+     * @return 数据库连接配置对象
+     */
+    public static DbConnBaseModel parseConnectionString(String connStr) {
+        DbConnBaseModel model = new DbConnBaseModel();
+        model.setDbType("postgis");
+
+        if (connStr == null) {
+            return model;
+        }
+
+        // Remove "PG:" prefix if present
+        String cleanStr = connStr.replaceFirst("^PG:\\s*", "");
+
+        String[] parts = cleanStr.split("\\s+");
+        for (String part : parts) {
+            String[] kv = part.split("=", 2);
+            if (kv.length != 2) {
+                continue;
+            }
+            String key = kv[0].trim().toLowerCase();
+            String value = kv[1].trim();
+
+            switch (key) {
+                case "host":
+                    model.setHost(value);
+                    break;
+                case "port":
+                    model.setPort(value);
+                    break;
+                case "dbname":
+                case "database":
+                    model.setDatabase(value);
+                    break;
+                case "user":
+                    model.setUser(value);
+                    break;
+                case "password":
+                case "passwd":
+                    model.setPasswd(value);
+                    break;
+                case "active_schema":
+                case "schema":
+                    model.setSchema(value);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        // Set defaults if not provided
+        if (model.getSchema() == null) {
+            model.setSchema("public");
+        }
+        if (model.getPort() == null) {
+            model.setPort("5432");
+        }
+
+        return model;
+    }
+
+    /**
      * 删除PostGIS图层中的要素
      * <p>
      * 根据SQL WHERE条件删除指定图层中的要素。

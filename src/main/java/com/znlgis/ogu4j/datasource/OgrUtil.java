@@ -9,6 +9,7 @@ import com.znlgis.ogu4j.common.CrsUtil;
 import com.znlgis.ogu4j.enums.DataFormatType;
 import com.znlgis.ogu4j.enums.FieldDataType;
 import com.znlgis.ogu4j.enums.GeometryType;
+import com.znlgis.ogu4j.exception.EngineNotSupportedException;
 import com.znlgis.ogu4j.geometry.EsriGeometryUtil;
 import com.znlgis.ogu4j.geometry.GeometryConverter;
 import com.znlgis.ogu4j.geometry.JtsGeometryUtil;
@@ -35,6 +36,14 @@ import java.util.concurrent.TimeUnit;
  * 使用前需确保GDAL环境已正确安装和配置。
  * 所有方法均为静态方法，无需实例化即可使用。
  * </p>
+ * <p>
+ * 推荐使用新的引擎抽象层API（{@link com.znlgis.ogu4j.engine.GdalEngine}）来访问GDAL功能，
+ * 现有的静态方法保持向后兼容。
+ * </p>
+ *
+ * @see com.znlgis.ogu4j.engine.GdalEngine
+ * @see com.znlgis.ogu4j.engine.GdalLayerReader
+ * @see com.znlgis.ogu4j.engine.GdalLayerWriter
  */
 public class OgrUtil {
     @Getter
@@ -58,11 +67,11 @@ public class OgrUtil {
     /**
      * 检查GDAL环境是否已正确初始化
      *
-     * @throws RuntimeException 如果OGR初始化失败
+     * @throws EngineNotSupportedException 如果OGR初始化失败
      */
-    public static void checkGdalEnv() {
+    public static void checkGdalEnv() throws EngineNotSupportedException {
         if (!Boolean.TRUE.equals(ogrInitSuccess)) {
-            throw new RuntimeException("OGR初始化失败");
+            throw new EngineNotSupportedException("OGR初始化失败");
         }
     }
 

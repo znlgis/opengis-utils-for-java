@@ -6,10 +6,17 @@ import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.IdUtil;
 import com.znlgis.ogu4j.common.EncodingUtil;
 import com.znlgis.ogu4j.common.CrsUtil;
+import com.znlgis.ogu4j.engine.GeoToolsLayerReader;
+import com.znlgis.ogu4j.engine.GeoToolsLayerWriter;
+import com.znlgis.ogu4j.engine.GisEngine;
+import com.znlgis.ogu4j.engine.GisEngineFactory;
 import com.znlgis.ogu4j.enums.DataFormatType;
 import com.znlgis.ogu4j.enums.FieldDataType;
 import com.znlgis.ogu4j.enums.GeometryType;
 import com.znlgis.ogu4j.enums.GisEngineType;
+import com.znlgis.ogu4j.exception.EngineNotSupportedException;
+import com.znlgis.ogu4j.exception.LayerValidationException;
+import com.znlgis.ogu4j.exception.OguException;
 import com.znlgis.ogu4j.geometry.EsriGeometryUtil;
 import com.znlgis.ogu4j.geometry.GeometryConverter;
 import com.znlgis.ogu4j.geometry.JtsGeometryUtil;
@@ -59,10 +66,63 @@ import java.util.concurrent.TimeUnit;
  * 支持使用GeoTools或GDAL/OGR两种引擎进行转换。
  * 所有方法均为静态方法，无需实例化即可使用。
  * </p>
+ * <p>
+ * 推荐使用新的引擎抽象层API（通过{@link GisEngineFactory}获取引擎）来实现更灵活的格式转换，
+ * 现有的静态方法保持向后兼容。
+ * </p>
+ *
+ * @see com.znlgis.ogu4j.engine.GisEngine
+ * @see com.znlgis.ogu4j.engine.GisEngineFactory
+ * @see com.znlgis.ogu4j.io.LayerReader
+ * @see com.znlgis.ogu4j.io.LayerWriter
  */
 public class OguLayerConverter {
     private OguLayerConverter() {
         throw new IllegalStateException("Utility class");
+    }
+
+    /**
+     * 使用引擎抽象层读取图层
+     * <p>
+     * 推荐的读取方式，使用新的引擎抽象层API。
+     * </p>
+     *
+     * @param formatType       数据格式类型
+     * @param path             数据源路径
+     * @param layerName        图层名称
+     * @param attributeFilter  属性过滤条件
+     * @param spatialFilterWkt 空间过滤条件
+     * @param gisEngineType    GIS引擎类型
+     * @return OguLayer图层对象
+     * @throws OguException 读取失败时抛出异常
+     */
+    public static OguLayer readLayer(DataFormatType formatType, String path, String layerName,
+                                      String attributeFilter, String spatialFilterWkt,
+                                      GisEngineType gisEngineType) throws OguException {
+        GisEngine engine = GisEngineFactory.getEngine(gisEngineType, formatType);
+        return engine.readLayer(formatType, path, layerName, attributeFilter, spatialFilterWkt);
+    }
+
+    /**
+     * 使用引擎抽象层写入图层
+     * <p>
+     * 推荐的写入方式，使用新的引擎抽象层API。
+     * </p>
+     *
+     * @param formatType    数据格式类型
+     * @param layer         要写入的图层
+     * @param path          目标路径
+     * @param layerName     图层名称
+     * @param options       写入选项
+     * @param gisEngineType GIS引擎类型
+     * @throws OguException 写入失败时抛出异常
+     */
+    public static void writeLayer(DataFormatType formatType, OguLayer layer, String path,
+                                  String layerName, Map<String, Object> options,
+                                  GisEngineType gisEngineType) throws OguException {
+        layer.validate();
+        GisEngine engine = GisEngineFactory.getEngine(gisEngineType, formatType);
+        engine.writeLayer(formatType, layer, path, layerName, options);
     }
 
     /**
@@ -73,76 +133,11 @@ public class OguLayerConverter {
      *
      * @param featureCollection GeoTools要素集合
      * @return OguLayer图层对象
+     * @deprecated 推荐使用 {@link GeoToolsLayerReader#fromSimpleFeatureCollection(SimpleFeatureCollection)}
      */
+    @Deprecated
     public static OguLayer fromSimpleFeatureCollection(SimpleFeatureCollection featureCollection) {
-        OguLayer layer = new OguLayer();
-        SimpleFeatureType featureType = featureCollection.getSchema();
-        layer.setName(featureType.getName().getLocalPart());
-        CoordinateReferenceSystem crs = featureType.getCoordinateReferenceSystem();
-        Map.Entry<Integer, CoordinateReferenceSystem> entry = CrsUtil.standardizeCRS(crs);
-        layer.setWkid(entry.getKey());
-        layer.setTolerance(CrsUtil.getTolerance(entry.getValue()));
-        Class<?> binding = featureType.getGeometryDescriptor().getType().getBinding();
-        if (binding != null) {
-            layer.setGeometryType(GeometryType.valueOfByTypeClass(binding));
-        } else {
-            String typeName = featureType.getGeometryDescriptor().getType().getName().getLocalPart();
-            layer.setGeometryType(GeometryType.valueOfByTypeName(typeName));
-        }
-
-        List<OguField> fields = new ArrayList<>();
-        for (int i = 0; i < featureType.getAttributeCount(); i++) {
-            if (featureType.getDescriptor(i) instanceof GeometryDescriptor) {
-                continue;
-            }
-            OguField field = new OguField();
-            field.setName(featureType.getDescriptor(i).getLocalName());
-            field.setAlias(featureType.getDescriptor(i).getLocalName());
-            field.setDataType(FieldDataType.fieldDataTypeByTypeClass(featureType.getDescriptor(i).getType().getBinding()));
-            fields.add(field);
-        }
-        layer.setFields(fields);
-
-        List<OguFeature> features = new ArrayList<>();
-        try (FeatureIterator<SimpleFeature> featureIterator = featureCollection.features()) {
-            while (featureIterator.hasNext()) {
-                SimpleFeature feature = featureIterator.next();
-                OguFeature oguFeature = new OguFeature();
-
-                String id = feature.getID();
-                if (CharSequenceUtil.isBlank(id)) {
-                    id = IdUtil.simpleUUID();
-                }
-                oguFeature.setId(id);
-
-                String wkt = ((Geometry) feature.getDefaultGeometry()).toText();
-                oguFeature.setGeometry(EsriGeometryUtil.simplify(wkt, layer.getWkid()));
-
-                if (layer.getGeometryType() == null) {
-                    layer.setGeometryType(JtsGeometryUtil.geometryType(GeometryConverter.wkt2Geometry(wkt)));
-                }
-
-                List<OguFieldValue> fieldValues = new ArrayList<>();
-                for (int i = 0; i < feature.getAttributeCount(); i++) {
-                    String fn = featureType.getDescriptor(i).getLocalName();
-                    OguField field = fields.stream().filter(f ->
-                            CharSequenceUtil.equals(f.getName(), fn, true)).findFirst().orElse(null);
-                    if (field != null) {
-                        OguFieldValue fieldValue = new OguFieldValue();
-                        fieldValue.setField(field);
-                        fieldValue.setValue(feature.getAttribute(fn));
-                        fieldValues.add(fieldValue);
-                    }
-                }
-
-                oguFeature.setAttributes(fieldValues);
-                features.add(oguFeature);
-            }
-        }
-
-        layer.setFeatures(features);
-        layer.validate();
-        return layer;
+        return GeoToolsLayerReader.fromSimpleFeatureCollection(featureCollection);
     }
 
     /**
@@ -153,55 +148,12 @@ public class OguLayerConverter {
      *
      * @param layer OguLayer图层对象
      * @return GeoTools SimpleFeatureCollection要素集合
+     * @deprecated 推荐使用 {@link GeoToolsLayerWriter#toSimpleFeatureCollection(OguLayer)}
      */
+    @Deprecated
     @SneakyThrows
     public static SimpleFeatureCollection toSimpleFeatureCollection(OguLayer layer) {
-        SimpleFeatureTypeBuilder tb = new SimpleFeatureTypeBuilder();
-        tb.setCRS(CrsUtil.getSupportedCRS(layer.getWkid()).getValue());
-        tb.setName(layer.getName());
-        tb.setDefaultGeometry("shape");
-        tb.add("shape", layer.getGeometryType().getTypeClass());
-
-        LinkedHashMap<String, FieldDataType> fieldMap = new LinkedHashMap<>();
-        layer.getFields().forEach(ff -> {
-            if (!fieldMap.containsKey(ff.getName())) {
-                fieldMap.put(ff.getName(), ff.getDataType());
-            } else {
-                if (fieldMap.get(ff.getName()) == null && ff.getDataType() != null) {
-                    fieldMap.put(ff.getName(), ff.getDataType());
-                }
-            }
-        });
-
-        fieldMap.forEach((k, v) -> {
-            if (v != null) {
-                tb.add(k, v.getTypeClass());
-            } else {
-                tb.add(k, String.class);
-            }
-        });
-
-        SimpleFeatureType featureType = tb.buildFeatureType();
-        ListFeatureCollection featureCollection = new ListFeatureCollection(featureType);
-        for (OguFeature f : layer.getFeatures()) {
-            SimpleFeatureBuilder builder = new SimpleFeatureBuilder(featureType);
-            if (CharSequenceUtil.isNotBlank(f.getGeometry())) {
-                builder.set("shape", GeometryConverter.wkt2Geometry(f.getGeometry()));
-            } else {
-                builder.set("shape", null);
-            }
-
-            layer.getFields().forEach(ff -> {
-                Optional<OguFieldValue> optional = f.getAttributes().stream()
-                        .filter(m -> CharSequenceUtil.equals(m.getField().getName(), ff.getName(), true))
-                        .findFirst();
-                optional.ifPresent(fieldValue -> builder.set(fieldValue.getField().getName(), fieldValue.getValue()));
-            });
-
-            featureCollection.add(builder.buildFeature(null));
-        }
-
-        return featureCollection;
+        return GeoToolsLayerWriter.toSimpleFeatureCollection(layer);
     }
 
     /**
@@ -423,7 +375,7 @@ public class OguLayerConverter {
      * @param spatialFilterWkt 空间过滤条件（WKT格式），为null时不过滤
      * @param gisEngineType    GIS引擎类型（必须为GDAL）
      * @return OguLayer图层对象
-     * @throws RuntimeException 如果引擎类型不是GDAL
+     * @throws EngineNotSupportedException 如果引擎类型不是GDAL
      */
     @SneakyThrows
     public static OguLayer fromFileGDB(String gdbPath, String layerName, String attributeFilter, String spatialFilterWkt, GisEngineType gisEngineType) {
@@ -431,7 +383,7 @@ public class OguLayerConverter {
         if (gisEngineType == GisEngineType.GDAL) {
             return OgrUtil.layer2OguLayer(DataFormatType.FILEGDB, gdbPath, layerName, attributeFilter, spatialFilterWkt);
         } else {
-            throw new RuntimeException("GDB数据源需要GDAL支持");
+            throw new EngineNotSupportedException("GDB数据源需要GDAL支持");
         }
     }
 
@@ -448,7 +400,7 @@ public class OguLayerConverter {
      * @param featureDataset 要素集名称，为null时直接创建在GDB根目录
      * @param layerName      图层名称
      * @param gisEngineType  GIS引擎类型（必须为GDAL）
-     * @throws RuntimeException 如果引擎类型不是GDAL
+     * @throws EngineNotSupportedException 如果引擎类型不是GDAL
      */
     @SneakyThrows
     public static void toFileGDB(OguLayer layer, String gdbPath, String featureDataset, String layerName, GisEngineType gisEngineType) {
@@ -464,7 +416,7 @@ public class OguLayerConverter {
             }
             OgrUtil.oguLayer2Layer(DataFormatType.FILEGDB, gdbPath, layer, layerName, options);
         } else {
-            throw new RuntimeException("GDB数据源需要GDAL支持");
+            throw new EngineNotSupportedException("GDB数据源需要GDAL支持");
         }
     }
 
