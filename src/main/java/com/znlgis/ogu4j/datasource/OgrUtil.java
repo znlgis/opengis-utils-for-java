@@ -56,7 +56,9 @@ public class OgrUtil {
     }
 
     /**
-     * 检查GDAL环境
+     * 检查GDAL环境是否已正确初始化
+     *
+     * @throws RuntimeException 如果OGR初始化失败
      */
     public static void checkGdalEnv() {
         if (!Boolean.TRUE.equals(ogrInitSuccess)) {
@@ -65,10 +67,11 @@ public class OgrUtil {
     }
 
     /**
-     * 获取驱动
+     * 获取GDAL/OGR驱动
      *
-     * @param driverType 驱动类型
-     * @return 驱动
+     * @param driverType 数据格式类型
+     * @return OGR驱动对象
+     * @throws RuntimeException 如果OGR未初始化
      */
     private static Driver getDriver(DataFormatType driverType) {
         checkGdalEnv();
@@ -76,11 +79,14 @@ public class OgrUtil {
     }
 
     /**
-     * 创建数据源
+     * 创建OGR数据源
+     * <p>
+     * 根据数据格式类型创建新的数据源。如果数据源已存在，行为取决于驱动类型。
+     * </p>
      *
-     * @param driverType 驱动类型
-     * @param path       数据源路径
-     * @return 数据源
+     * @param driverType 数据格式类型
+     * @param path       数据源路径（文件路径或目录路径）
+     * @return OGR数据源对象
      */
     public static DataSource createDataSource(DataFormatType driverType, String path) {
         Driver driver = getDriver(driverType);
@@ -88,11 +94,14 @@ public class OgrUtil {
     }
 
     /**
-     * 打开数据源
+     * 打开已存在的OGR数据源
+     * <p>
+     * 以可读写模式打开数据源。如果数据源不存在，返回null。
+     * </p>
      *
-     * @param driverType 驱动类型
-     * @param path       数据源路径
-     * @return 数据源
+     * @param driverType 数据格式类型
+     * @param path       数据源路径（文件路径或目录路径）
+     * @return OGR数据源对象，如果打开失败返回null
      */
     public static DataSource openDataSource(DataFormatType driverType, String path) {
         Driver driver = getDriver(driverType);
@@ -100,9 +109,12 @@ public class OgrUtil {
     }
 
     /**
-     * 关闭数据源
+     * 关闭OGR数据源
+     * <p>
+     * 释放数据源相关资源。如果数据源为null，则不执行任何操作。
+     * </p>
      *
-     * @param dataSource 数据源
+     * @param dataSource 要关闭的数据源
      */
     public static void closeDataSource(DataSource dataSource) {
         if (dataSource != null) {
@@ -111,10 +123,10 @@ public class OgrUtil {
     }
 
     /**
-     * 获取图层名称
+     * 获取数据源中的所有图层名称
      *
-     * @param dataSource 数据源
-     * @return 图层名称
+     * @param dataSource OGR数据源
+     * @return 图层名称列表，如果没有图层则返回空列表
      */
     public static List<String> getLayerNames(DataSource dataSource) {
         List<String> layerNames = new ArrayList<>();
@@ -130,34 +142,38 @@ public class OgrUtil {
     }
 
     /**
-     * 获取图层
+     * 根据索引获取图层
      *
-     * @param dataSource 数据源
-     * @param layerIndex 图层索引
-     * @return 图层
+     * @param dataSource OGR数据源
+     * @param layerIndex 图层索引（从0开始）
+     * @return OGR图层对象
      */
     public static Layer getLayer(DataSource dataSource, int layerIndex) {
         return dataSource.GetLayer(layerIndex);
     }
 
     /**
-     * 获取图层
+     * 根据名称获取图层
      *
-     * @param dataSource 数据源
+     * @param dataSource OGR数据源
      * @param layerName  图层名称
-     * @return 图层
+     * @return OGR图层对象，如果不存在返回null
      */
     public static Layer getLayer(DataSource dataSource, String layerName) {
         return dataSource.GetLayerByName(layerName);
     }
 
     /**
-     * Layer转OguLayer
+     * 将OGR图层转换为OguLayer
+     * <p>
+     * 读取OGR图层的所有要素，转换为OguLayer对象。
+     * 支持属性过滤和空间过滤条件。
+     * </p>
      *
-     * @param layer            图层
-     * @param attributeFilter  属性过滤条件
-     * @param spatialFilterWkt 空间过滤条件
-     * @return OguLayer
+     * @param layer            OGR图层对象
+     * @param attributeFilter  属性过滤条件（SQL WHERE子句），为null时不过滤
+     * @param spatialFilterWkt 空间过滤条件（WKT格式），为null时不过滤
+     * @return OguLayer图层对象
      */
     public static OguLayer layer2OguLayer(Layer layer, String attributeFilter, String spatialFilterWkt) {
         OguLayer oguLayer = new OguLayer();
@@ -252,14 +268,17 @@ public class OgrUtil {
     }
 
     /**
-     * 创建图层
+     * 在数据源中创建新图层
+     * <p>
+     * 创建具有指定坐标系和几何类型的新图层。
+     * </p>
      *
-     * @param dataSource   数据源
+     * @param dataSource   OGR数据源
      * @param layerName    图层名称
-     * @param wkid         wkid
+     * @param wkid         坐标系WKID（EPSG代码）
      * @param geometryType 几何类型
-     * @param options      选项
-     * @return 图层
+     * @param options      创建选项（可选参数）
+     * @return 新创建的OGR图层对象
      */
     public static Layer createLayer(DataSource dataSource, String layerName, Integer wkid, GeometryType geometryType, Vector options) {
         SpatialReference sr = new SpatialReference();
@@ -268,13 +287,17 @@ public class OgrUtil {
     }
 
     /**
-     * 初始化图层
+     * 初始化图层结构
+     * <p>
+     * 如果数据源不存在则创建，如果图层不存在则创建。
+     * 自动添加OguLayer中定义的字段到图层中。
+     * </p>
      *
-     * @param driverType  驱动类型
-     * @param path        数据源路径
-     * @param oguLayer OguLayer
-     * @param layerName   图层名称
-     * @param options     选项
+     * @param driverType 数据格式类型
+     * @param path       数据源路径
+     * @param oguLayer   OguLayer图层对象（提供字段定义和坐标系信息）
+     * @param layerName  图层名称
+     * @param options    创建选项
      */
     private static void initLayer(DataFormatType driverType, String path, OguLayer oguLayer, String layerName,
                                   Vector options) {
@@ -299,13 +322,17 @@ public class OgrUtil {
     }
 
     /**
-     * 要素集合转图层
+     * 将OguFeature列表写入OGR图层
+     * <p>
+     * 批量将OguFeature要素写入指定的OGR图层。
+     * 会自动添加缺失的字段定义。
+     * </p>
      *
-     * @param driverType 驱动类型
+     * @param driverType 数据格式类型
      * @param path       数据源路径
-     * @param fields     OguField集合
-     * @param features   OguFeature集合
-     * @param layerName  图层名称
+     * @param fields     字段定义列表
+     * @param features   要素列表
+     * @param layerName  图层名称，为空时使用第一个图层
      */
     private static void oguFeatures2Layer(DataFormatType driverType, String path, List<OguField> fields, List<OguFeature> features, String layerName) {
         DataSource dataSource = OgrUtil.openDataSource(driverType, path);
@@ -367,12 +394,16 @@ public class OgrUtil {
     }
 
     /**
-     * 要素集合转POSTGIS图层
+     * 将OguLayer写入PostGIS图层（批量处理）
+     * <p>
+     * 使用多线程批量写入要素到PostGIS数据库，每批1000条记录。
+     * 适用于大数据量的高效写入场景。
+     * </p>
      *
-     * @param driverType  驱动名称
-     * @param path        数据源路径
-     * @param oguLayer OguLayer
-     * @param layerName   图层名称
+     * @param driverType 数据格式类型
+     * @param path       PostGIS连接字符串
+     * @param oguLayer   OguLayer图层对象
+     * @param layerName  图层名称
      */
     @SneakyThrows
     private static void oguLayer2Layer4Postgis(DataFormatType driverType, String path, OguLayer oguLayer, String layerName) {
@@ -401,13 +432,17 @@ public class OgrUtil {
     }
 
     /**
-     * OguLayer转图层
+     * 将OguLayer写入OGR图层
+     * <p>
+     * 将OguLayer转换并写入指定的数据源中。
+     * 如果图层不存在则创建，存在则追加数据。
+     * </p>
      *
-     * @param driverType  驱动类型
-     * @param path        数据源路径
-     * @param oguLayer OguLayer
-     * @param layerName   图层名称
-     * @param options     选项
+     * @param driverType 数据格式类型
+     * @param path       数据源路径
+     * @param oguLayer   OguLayer图层对象
+     * @param layerName  图层名称
+     * @param options    创建选项
      */
     public static void oguLayer2Layer(DataFormatType driverType, String path, OguLayer oguLayer, String layerName, Vector options) {
         initLayer(driverType, path, oguLayer, layerName, options);
@@ -415,13 +450,18 @@ public class OgrUtil {
     }
 
     /**
-     * OguLayer转POSTGIS图层
+     * 将OguLayer写入PostGIS图层
+     * <p>
+     * 将OguLayer转换并写入PostGIS数据库。
+     * 自动配置几何字段名称为SHAPE，FID字段为FID，支持64位FID。
+     * 使用批量多线程写入优化性能。
+     * </p>
      *
-     * @param driverType      驱动类型
-     * @param dbConnBaseModel 数据库连接
-     * @param oguLayer     OguLayer
+     * @param driverType      数据格式类型
+     * @param dbConnBaseModel 数据库连接配置
+     * @param oguLayer        OguLayer图层对象
      * @param layerName       图层名称
-     * @param options         选项
+     * @param options         创建选项（可为null）
      */
     public static void oguLayer2Layer4Postgis(DataFormatType driverType, DbConnBaseModel dbConnBaseModel, OguLayer oguLayer, String layerName, Vector options) {
         if (options == null) {
@@ -436,14 +476,18 @@ public class OgrUtil {
     }
 
     /**
-     * 图层转OguLayer
+     * 从数据源读取图层并转换为OguLayer
+     * <p>
+     * 便捷方法，自动处理数据源的打开和关闭。
+     * 支持属性过滤和空间过滤条件。
+     * </p>
      *
-     * @param driverType       驱动类型
+     * @param driverType       数据格式类型
      * @param path             数据源路径
      * @param layerName        图层名称
-     * @param attributeFilter  属性过滤条件
-     * @param spatialFilterWkt 空间过滤条件
-     * @return OguLayer
+     * @param attributeFilter  属性过滤条件（SQL WHERE子句），为null时不过滤
+     * @param spatialFilterWkt 空间过滤条件（WKT格式），为null时不过滤
+     * @return OguLayer图层对象
      */
     public static OguLayer layer2OguLayer(DataFormatType driverType, String path, String layerName, String attributeFilter, String spatialFilterWkt) {
         DataSource dataSource = OgrUtil.openDataSource(driverType, path);

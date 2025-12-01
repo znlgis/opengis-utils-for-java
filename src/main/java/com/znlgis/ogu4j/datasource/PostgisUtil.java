@@ -25,10 +25,13 @@ public class PostgisUtil {
     }
 
     /**
-     * 获取Postgis数据源参数
+     * 构建PostGIS数据源连接参数（GeoTools格式）
+     * <p>
+     * 将数据库连接配置转换为GeoTools DataStore所需的参数Map。
+     * </p>
      *
-     * @param dbConnBaseModel 数据库连接信息
-     * @return Postgis数据源参数
+     * @param dbConnBaseModel 数据库连接配置
+     * @return PostGIS数据源参数Map
      */
     private static Map<String, Object> getPostgisInfo(DbConnBaseModel dbConnBaseModel) {
         Map<String, Object> params = new HashMap<>();
@@ -46,10 +49,13 @@ public class PostgisUtil {
     }
 
     /**
-     * 获取GDAL Postgis数据源参数
+     * 构建GDAL PostGIS连接字符串
+     * <p>
+     * 将数据库连接配置转换为GDAL OGR所需的PG连接字符串格式。
+     * </p>
      *
-     * @param dbConnBaseModel 数据库连接信息
-     * @return GDAL Postgis数据源参数
+     * @param dbConnBaseModel 数据库连接配置
+     * @return GDAL PostGIS连接字符串，格式如：PG: host=xxx port=xxx dbname=xxx ...
      */
     public static String toGdalPostgisConnStr(DbConnBaseModel dbConnBaseModel) {
         return "PG: host=" + dbConnBaseModel.getHost() +
@@ -61,10 +67,14 @@ public class PostgisUtil {
     }
 
     /**
-     * 获取Postgis数据源
+     * 获取GeoTools PostGIS数据源
+     * <p>
+     * 使用数据库连接配置创建GeoTools JDBCDataStore实例。
+     * 使用完毕后应调用dispose()方法释放资源。
+     * </p>
      *
-     * @param dbConnBaseModel 数据库连接信息
-     * @return Postgis数据源
+     * @param dbConnBaseModel 数据库连接配置
+     * @return JDBCDataStore数据源实例
      */
     @SneakyThrows
     public static JDBCDataStore getPostgisDataStore(DbConnBaseModel dbConnBaseModel) {
@@ -73,10 +83,14 @@ public class PostgisUtil {
     }
 
     /**
-     * 获取Postgis数据源
+     * 获取GeoTools PostGIS数据源
+     * <p>
+     * 使用参数Map创建GeoTools JDBCDataStore实例。
+     * 使用完毕后应调用dispose()方法释放资源。
+     * </p>
      *
-     * @param params 数据源参数
-     * @return Postgis数据源
+     * @param params 数据源连接参数Map
+     * @return JDBCDataStore数据源实例
      */
     @SneakyThrows
     public static JDBCDataStore getPostgisDataStore(Map<String, Object> params) {
@@ -84,12 +98,16 @@ public class PostgisUtil {
     }
 
     /**
-     * 删除PostGIS指定图层的指定要素
+     * 删除PostGIS图层中的要素
+     * <p>
+     * 根据SQL WHERE条件删除指定图层中的要素。
+     * 如果不指定条件，将删除图层中的所有要素。
+     * </p>
      *
-     * @param dbConnBaseModel 数据源
-     * @param layerName       图层名称
-     * @param whereClause     过滤条件
-     * @return 删除的要素个数
+     * @param dbConnBaseModel 数据库连接配置
+     * @param layerName       图层名称（表名）
+     * @param whereClause     SQL WHERE子句（不包含WHERE关键字），为null或空时删除所有要素
+     * @return 删除的要素数量
      */
     @SneakyThrows
     public static int deletePostgisFeatures(DbConnBaseModel dbConnBaseModel, String layerName, String whereClause) {

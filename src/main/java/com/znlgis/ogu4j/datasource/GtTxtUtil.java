@@ -423,7 +423,13 @@ public class GtTxtUtil {
     }
 
     /**
-     * 获取默认字段名称
+     * 获取默认字段名称列表
+     * <p>
+     * 返回国土TXT格式的标准字段名称列表，按照规范顺序排列。
+     * 包括界址点数(JZDS)、地块面积(DKMJ)、地块编号(DKBH)等字段。
+     * </p>
+     *
+     * @return 默认字段名称列表
      */
     private static List<String> getDefaultFieldNames() {
         List<String> fieldNames = new ArrayList<>();
@@ -444,7 +450,13 @@ public class GtTxtUtil {
     }
 
     /**
-     * 获取默认字段定义
+     * 获取默认字段定义列表
+     * <p>
+     * 返回国土TXT格式的标准字段定义列表，包含字段名称、别名和数据类型。
+     * 所有字段默认使用字符串类型，以保持与TXT文件的兼容性。
+     * </p>
+     *
+     * @return 默认字段定义列表
      */
     private static List<OguField> getDefaultFields() {
         List<OguField> fields = new ArrayList<>();
@@ -465,7 +477,16 @@ public class GtTxtUtil {
     }
 
     /**
-     * 准备元数据
+     * 准备图层元数据
+     * <p>
+     * 合并源元数据和默认值，生成完整的图层元数据对象。
+     * 如果源元数据中没有带号信息，则使用传入的zoneNumber参数。
+     * </p>
+     *
+     * @param layer      OguLayer图层对象
+     * @param source     源元数据，可为null
+     * @param zoneNumber 投影带号
+     * @return 处理后的元数据对象
      */
     private static OguLayerMetadata prepareMetadata(OguLayer layer, OguLayerMetadata source, Integer zoneNumber) {
         OguLayerMetadata metadata = new OguLayerMetadata();

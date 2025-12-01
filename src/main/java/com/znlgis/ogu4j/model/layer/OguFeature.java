@@ -92,6 +92,9 @@ public class OguFeature implements Serializable {
 
     /**
      * 无参构造函数
+     * <p>
+     * 供JSON反序列化和框架创建空要素对象使用。
+     * </p>
      */
     public OguFeature(){
 

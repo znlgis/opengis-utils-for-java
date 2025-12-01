@@ -4,7 +4,14 @@ import com.znlgis.ogu4j.datasource.OgrUtil;
 import lombok.Getter;
 
 /**
- * 所支持的GIS引擎类型
+ * GIS引擎类型枚举
+ * <p>
+ * 定义本库支持的GIS数据处理引擎类型。
+ * GEOTOOLS为纯Java实现，无需额外依赖；GDAL需要安装GDAL本地库。
+ * AUTO模式会自动选择可用的引擎，优先使用GDAL。
+ * </p>
+ *
+ * @see com.znlgis.ogu4j.datasource.OguLayerConverter
  */
 @Getter
 public enum GisEngineType {

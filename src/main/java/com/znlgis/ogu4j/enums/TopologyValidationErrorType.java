@@ -3,7 +3,14 @@ package com.znlgis.ogu4j.enums;
 import lombok.Getter;
 
 /**
- * 拓扑检查错误类型枚举
+ * 拓扑验证错误类型枚举
+ * <p>
+ * 定义几何对象拓扑验证中可能出现的各类错误，包括自相交、洞重叠、环未闭合等。
+ * 每种错误类型对应JTS IsValidOp返回的错误代码。
+ * </p>
+ *
+ * @see com.znlgis.ogu4j.model.TopologyValidationResult
+ * @see com.znlgis.ogu4j.geometry.JtsGeometryUtil#isValid(org.locationtech.jts.geom.Geometry)
  */
 
 @Getter
