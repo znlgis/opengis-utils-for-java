@@ -18,7 +18,7 @@ public final class GisEngineFactory {
     private static final GdalEngine GDAL_ENGINE = new GdalEngine();
 
     private GisEngineFactory() {
-        throw new IllegalStateException("Factory class");
+        throw new IllegalStateException("Utility class - do not instantiate");
     }
 
     /**

@@ -235,6 +235,7 @@ public class GeoToolsLayerReader implements LayerReader {
         }
 
         layer.setFeatures(features);
+        layer.validate();
         return layer;
     }
 }

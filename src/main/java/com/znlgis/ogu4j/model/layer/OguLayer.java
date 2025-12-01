@@ -101,7 +101,7 @@ public class OguLayer implements Serializable {
      *
      * @throws LayerValidationException 验证失败时抛出异常
      */
-    public void validate() throws LayerValidationException {
+    public void validate() {
         if (this.getGeometryType() == null) {
             throw new LayerValidationException("未获取到几何类型");
         }
