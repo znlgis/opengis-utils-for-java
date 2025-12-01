@@ -99,13 +99,13 @@ feature.setValue("fieldName", newValue);
 
 ### 图层格式转换
 
-使用 `SimpleLayerConverter` 进行各种格式间的转换：
+使用 `OguLayerConverter` 进行各种格式间的转换：
 
 #### Shapefile
 
 ```java
 // 从Shapefile读取（支持属性过滤和空间过滤）
-OguLayer layer = SimpleLayerConverter.fromShapefile(
+OguLayer layer = OguLayerConverter.fromShapefile(
     shpPath, 
     "NAME = '北京'",           // 属性过滤条件（CQL表达式）
     spatialFilterWkt,          // 空间过滤条件（WKT格式）
@@ -113,24 +113,24 @@ OguLayer layer = SimpleLayerConverter.fromShapefile(
 );
 
 // 保存为Shapefile
-SimpleLayerConverter.toShapefile(layer, shpPath, GisEngineType.GEOTOOLS);
+OguLayerConverter.toShapefile(layer, shpPath, GisEngineType.GEOTOOLS);
 ```
 
 #### GeoJSON
 
 ```java
 // 从GeoJSON读取
-OguLayer layer = SimpleLayerConverter.fromGeoJSON(geojsonPath, GisEngineType.GEOTOOLS);
+OguLayer layer = OguLayerConverter.fromGeoJSON(geojsonPath, GisEngineType.GEOTOOLS);
 
 // 保存为GeoJSON
-SimpleLayerConverter.toGeoJSON(layer, geojsonPath, GisEngineType.GEOTOOLS);
+OguLayerConverter.toGeoJSON(layer, geojsonPath, GisEngineType.GEOTOOLS);
 ```
 
 #### FileGDB（需要GDAL支持）
 
 ```java
 // 从FileGDB读取指定图层
-OguLayer layer = SimpleLayerConverter.fromFileGDB(
+OguLayer layer = OguLayerConverter.fromFileGDB(
     gdbPath, 
     "layerName", 
     attributeFilter, 
@@ -139,7 +139,7 @@ OguLayer layer = SimpleLayerConverter.fromFileGDB(
 );
 
 // 保存到FileGDB
-SimpleLayerConverter.toFileGDB(layer, gdbPath, "featureDataset", "layerName", GisEngineType.GDAL);
+OguLayerConverter.toFileGDB(layer, gdbPath, "featureDataset", "layerName", GisEngineType.GDAL);
 ```
 
 #### PostGIS
@@ -156,17 +156,17 @@ dbConn.setUser("postgres");
 dbConn.setPasswd("password");
 
 // 从PostGIS读取
-OguLayer layer = SimpleLayerConverter.fromPostGIS(dbConn, "layerName", null, null, GisEngineType.GEOTOOLS);
+OguLayer layer = OguLayerConverter.fromPostGIS(dbConn, "layerName", null, null, GisEngineType.GEOTOOLS);
 
 // 保存到PostGIS
-SimpleLayerConverter.toPostGIS(layer, dbConn, "layerName", GisEngineType.GEOTOOLS);
+OguLayerConverter.toPostGIS(layer, dbConn, "layerName", GisEngineType.GEOTOOLS);
 ```
 
 #### 国土TXT坐标文件
 
 ```java
 // 从TXT文件读取
-OguLayer layer = SimpleLayerConverter.fromTxtFile(txtPath, null);
+OguLayer layer = OguLayerConverter.fromTxtFile(txtPath, null);
 
 // 保存为TXT文件
 OguLayerMetadata metadata = new OguLayerMetadata();
@@ -177,7 +177,7 @@ metadata.setProjectionType("高斯克吕格");
 metadata.setMeasureUnit("米");
 
 int zoneNumber = 39; // 带号
-SimpleLayerConverter.toTxtFile(layer, txtPath, metadata, null, zoneNumber);
+OguLayerConverter.toTxtFile(layer, txtPath, metadata, null, zoneNumber);
 ```
 
 ### 几何格式转换
@@ -370,7 +370,7 @@ Map<Integer, CoordinateReferenceSystem> crsList = CrsUtil.getSupportedCRSList();
 | `com.znlgis.ogu4j.model` | 数据模型类（DbConnBaseModel、GdbGroupModel、TopologyValidationResult等） |
 | `com.znlgis.ogu4j.enums` | 枚举类型（GeometryType、FieldDataType、GisEngineType、DataFormatType等） |
 | `com.znlgis.ogu4j.geometry` | 几何处理工具（JtsGeometryUtil、EsriGeometryUtil、GeometryConverter） |
-| `com.znlgis.ogu4j.datasource` | 数据源工具类（ShpUtil、PostgisUtil、OgrUtil、GeotoolsUtil、GtTxtUtil、SimpleLayerConverter） |
+| `com.znlgis.ogu4j.datasource` | 数据源工具类（ShpUtil、PostgisUtil、OgrUtil、GeotoolsUtil、GtTxtUtil、OguLayerConverter） |
 | `com.znlgis.ogu4j.common` | 通用工具类（CrsUtil、ZipUtil、EncodingUtil、SortUtil、NumUtil、GdalCmdUtil） |
 
 ### 实用工具类
@@ -507,16 +507,16 @@ String json = layer.toJSON();
 
 ```java
 // Shapefile
-OguLayer layer = SimpleLayerConverter.fromShapefile(shpPath, null, null, GisEngineType.GEOTOOLS);
-SimpleLayerConverter.toShapefile(layer, shpPath, GisEngineType.GEOTOOLS);
+OguLayer layer = OguLayerConverter.fromShapefile(shpPath, null, null, GisEngineType.GEOTOOLS);
+OguLayerConverter.toShapefile(layer, shpPath, GisEngineType.GEOTOOLS);
 
 // GeoJSON
-OguLayer layer = SimpleLayerConverter.fromGeoJSON(geojsonPath, GisEngineType.GEOTOOLS);
-SimpleLayerConverter.toGeoJSON(layer, geojsonPath, GisEngineType.GEOTOOLS);
+OguLayer layer = OguLayerConverter.fromGeoJSON(geojsonPath, GisEngineType.GEOTOOLS);
+OguLayerConverter.toGeoJSON(layer, geojsonPath, GisEngineType.GEOTOOLS);
 
 // FileGDB (requires GDAL)
-OguLayer layer = SimpleLayerConverter.fromFileGDB(gdbPath, "layerName", null, null, GisEngineType.GDAL);
-SimpleLayerConverter.toFileGDB(layer, gdbPath, "dataset", "layerName", GisEngineType.GDAL);
+OguLayer layer = OguLayerConverter.fromFileGDB(gdbPath, "layerName", null, null, GisEngineType.GDAL);
+OguLayerConverter.toFileGDB(layer, gdbPath, "dataset", "layerName", GisEngineType.GDAL);
 ```
 
 ### Requirements
@@ -545,7 +545,7 @@ SimpleLayerConverter.toFileGDB(layer, gdbPath, "dataset", "layerName", GisEngine
 | `com.znlgis.ogu4j.model` | Data model classes (DbConnBaseModel, GdbGroupModel, TopologyValidationResult, etc.) |
 | `com.znlgis.ogu4j.enums` | Enumerations (GeometryType, FieldDataType, GisEngineType, DataFormatType) |
 | `com.znlgis.ogu4j.geometry` | Geometry utilities (JtsGeometryUtil, EsriGeometryUtil, GeometryConverter) |
-| `com.znlgis.ogu4j.datasource` | Data source utilities (ShpUtil, PostgisUtil, OgrUtil, GeotoolsUtil, GtTxtUtil, SimpleLayerConverter) |
+| `com.znlgis.ogu4j.datasource` | Data source utilities (ShpUtil, PostgisUtil, OgrUtil, GeotoolsUtil, GtTxtUtil, OguLayerConverter) |
 | `com.znlgis.ogu4j.common` | Common utilities (CrsUtil, ZipUtil, EncodingUtil, SortUtil, NumUtil, GdalCmdUtil) |
 
 ### Utility Classes

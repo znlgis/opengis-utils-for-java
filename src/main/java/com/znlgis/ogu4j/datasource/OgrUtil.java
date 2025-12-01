@@ -155,14 +155,14 @@ public class OgrUtil {
     }
 
     /**
-     * Layer转SimpleLayer
+     * Layer转OguLayer
      *
      * @param layer            图层
      * @param attributeFilter  属性过滤条件
      * @param spatialFilterWkt 空间过滤条件
-     * @return SimpleLayer
+     * @return OguLayer
      */
-    public static OguLayer layer2SimpleLayer(Layer layer, String attributeFilter, String spatialFilterWkt) {
+    public static OguLayer layer2OguLayer(Layer layer, String attributeFilter, String spatialFilterWkt) {
         OguLayer oguLayer = new OguLayer();
         oguLayer.setName(layer.GetName());
         oguLayer.setAlias(layer.GetName());
@@ -275,7 +275,7 @@ public class OgrUtil {
      *
      * @param driverType  驱动类型
      * @param path        数据源路径
-     * @param oguLayer SimpleLayer
+     * @param oguLayer OguLayer
      * @param layerName   图层名称
      * @param options     选项
      */
@@ -306,11 +306,11 @@ public class OgrUtil {
      *
      * @param driverType 驱动类型
      * @param path       数据源路径
-     * @param fields     SimpleField集合
-     * @param features   SimpleFeature集合
+     * @param fields     OguField集合
+     * @param features   OguFeature集合
      * @param layerName  图层名称
      */
-    private static void simpleFeatures2Layer(DataFormatType driverType, String path, List<OguField> fields, List<OguFeature> features, String layerName) {
+    private static void oguFeatures2Layer(DataFormatType driverType, String path, List<OguField> fields, List<OguFeature> features, String layerName) {
         DataSource dataSource = OgrUtil.openDataSource(driverType, path);
         Layer layer;
         if (CharSequenceUtil.isNotBlank(layerName)) {
@@ -374,11 +374,11 @@ public class OgrUtil {
      *
      * @param driverType  驱动名称
      * @param path        数据源路径
-     * @param oguLayer SimpleLayer
+     * @param oguLayer OguLayer
      * @param layerName   图层名称
      */
     @SneakyThrows
-    private static void simpleLayer2Layer4Postgis(DataFormatType driverType, String path, OguLayer oguLayer, String layerName) {
+    private static void oguLayer2Layer4Postgis(DataFormatType driverType, String path, OguLayer oguLayer, String layerName) {
         int batchSize = 1000;
         int count = oguLayer.getFeatures().size() / batchSize;
         ExecutorService executorService = ThreadUtil.newExecutor(count);
@@ -392,7 +392,7 @@ public class OgrUtil {
 
             executorService.execute(() -> {
                 try {
-                    simpleFeatures2Layer(driverType, path, oguLayer.getFields(), subList, layerName);
+                    oguFeatures2Layer(driverType, path, oguLayer.getFields(), subList, layerName);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -404,29 +404,29 @@ public class OgrUtil {
     }
 
     /**
-     * SimpleLayer转图层
+     * OguLayer转图层
      *
      * @param driverType  驱动类型
      * @param path        数据源路径
-     * @param oguLayer SimpleLayer
+     * @param oguLayer OguLayer
      * @param layerName   图层名称
      * @param options     选项
      */
-    public static void simpleLayer2Layer(DataFormatType driverType, String path, OguLayer oguLayer, String layerName, Vector options) {
+    public static void oguLayer2Layer(DataFormatType driverType, String path, OguLayer oguLayer, String layerName, Vector options) {
         initLayer(driverType, path, oguLayer, layerName, options);
-        simpleFeatures2Layer(driverType, path, oguLayer.getFields(), oguLayer.getFeatures(), layerName);
+        oguFeatures2Layer(driverType, path, oguLayer.getFields(), oguLayer.getFeatures(), layerName);
     }
 
     /**
-     * SimpleLayer转POSTGIS图层
+     * OguLayer转POSTGIS图层
      *
      * @param driverType      驱动类型
      * @param dbConnBaseModel 数据库连接
-     * @param oguLayer     SimpleLayer
+     * @param oguLayer     OguLayer
      * @param layerName       图层名称
      * @param options         选项
      */
-    public static void simpleLayer2Layer4Postgis(DataFormatType driverType, DbConnBaseModel dbConnBaseModel, OguLayer oguLayer, String layerName, Vector options) {
+    public static void oguLayer2Layer4Postgis(DataFormatType driverType, DbConnBaseModel dbConnBaseModel, OguLayer oguLayer, String layerName, Vector options) {
         if (options == null) {
             options = new Vector();
         }
@@ -435,23 +435,23 @@ public class OgrUtil {
         options.add("FID64=TRUE");
         String path = PostgisUtil.toGdalPostgisConnStr(dbConnBaseModel);
         initLayer(driverType, path, oguLayer, layerName, options);
-        simpleLayer2Layer4Postgis(driverType, path, oguLayer, layerName);
+        oguLayer2Layer4Postgis(driverType, path, oguLayer, layerName);
     }
 
     /**
-     * 图层转SimpleLayer
+     * 图层转OguLayer
      *
      * @param driverType       驱动类型
      * @param path             数据源路径
      * @param layerName        图层名称
      * @param attributeFilter  属性过滤条件
      * @param spatialFilterWkt 空间过滤条件
-     * @return SimpleLayer
+     * @return OguLayer
      */
-    public static OguLayer layer2SimpleLayer(DataFormatType driverType, String path, String layerName, String attributeFilter, String spatialFilterWkt) {
+    public static OguLayer layer2OguLayer(DataFormatType driverType, String path, String layerName, String attributeFilter, String spatialFilterWkt) {
         DataSource dataSource = OgrUtil.openDataSource(driverType, path);
         Layer layer = OgrUtil.getLayer(dataSource, layerName);
-        OguLayer oguLayer = OgrUtil.layer2SimpleLayer(layer, attributeFilter, spatialFilterWkt);
+        OguLayer oguLayer = OgrUtil.layer2OguLayer(layer, attributeFilter, spatialFilterWkt);
         OgrUtil.closeDataSource(dataSource);
         return oguLayer;
     }
