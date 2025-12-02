@@ -6,6 +6,10 @@ package com.znlgis.ogu4j.exception;
  * 当几何对象的空间拓扑关系存在问题时抛出此异常。
  * 可能的原因包括：自相交、无效坐标、环未闭合等拓扑错误。
  * </p>
+ *
+ * @author znlgis
+ * @version 1.0.0
+ * @since 1.0.0
  */
 public class TopologyException extends OguException {
 

@@ -17,6 +17,10 @@ import java.nio.charset.Charset;
  * <p>
  * 基于GDAL/OGR库实现的图层读取器，支持Shapefile、GeoJSON、FileGDB、PostGIS格式。
  * </p>
+ *
+ * @author znlgis
+ * @version 1.0.0
+ * @since 1.0.0
  */
 public class GdalLayerReader implements LayerReader {
 

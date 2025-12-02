@@ -12,6 +12,10 @@ import java.io.Serializable;
  * <p>
  * 表示图层中的一个字段的元数据信息，包含字段名称、别名、数据类型等属性。
  * </p>
+ *
+ * @author znlgis
+ * @version 1.0.0
+ * @since 1.0.0
  */
 @Data
 @AllArgsConstructor

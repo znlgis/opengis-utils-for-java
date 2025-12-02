@@ -10,6 +10,9 @@ import org.locationtech.jts.geom.*;
  * 提供几何类型与JTS Geometry类、WKB类型代码之间的映射关系。
  * </p>
  *
+ * @author znlgis
+ * @version 1.0.0
+ * @since 1.0.0
  * @see org.locationtech.jts.geom.Geometry
  */
 @Getter

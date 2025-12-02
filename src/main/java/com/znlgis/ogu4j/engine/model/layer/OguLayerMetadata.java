@@ -13,6 +13,10 @@ import java.util.List;
  * 用于存储图层的扩展属性信息，如坐标系参数、数据来源、投影类型等。
  * 主要用于国土TXT坐标文件的属性描述部分。
  * </p>
+ *
+ * @author znlgis
+ * @version 1.0.0
+ * @since 1.0.0
  */
 @Data
 @AllArgsConstructor

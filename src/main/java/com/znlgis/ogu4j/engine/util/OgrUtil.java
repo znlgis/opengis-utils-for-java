@@ -33,6 +33,9 @@ import java.util.concurrent.TimeUnit;
  * 使用前需确保GDAL环境已正确安装和配置。
  * </p>
  *
+ * @author znlgis
+ * @version 1.0.0
+ * @since 1.0.0
  * @see com.znlgis.ogu4j.engine.GdalEngine
  * @see com.znlgis.ogu4j.engine.GdalLayerReader
  * @see com.znlgis.ogu4j.engine.GdalLayerWriter

@@ -12,6 +12,10 @@ import java.io.Serializable;
  * 表示一个地理坐标点，支持二维/三维坐标。
  * 包含点号和圈号属性，用于国土TXT格式等特殊场景。
  * </p>
+ *
+ * @author znlgis
+ * @version 1.0.0
+ * @since 1.0.0
  */
 @Data
 @AllArgsConstructor

@@ -58,6 +58,10 @@ import java.util.concurrent.TimeUnit;
  * <p>
  * 基于GeoTools库实现的图层写入器，支持Shapefile、GeoJSON、PostGIS、TXT格式。
  * </p>
+ *
+ * @author znlgis
+ * @version 1.0.0
+ * @since 1.0.0
  */
 public class GeoToolsLayerWriter implements LayerWriter {
 

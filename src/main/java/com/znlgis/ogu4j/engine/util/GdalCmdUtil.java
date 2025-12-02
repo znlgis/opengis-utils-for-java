@@ -17,6 +17,10 @@ import java.nio.charset.StandardCharsets;
  * 使用前需确保GDAL命令行工具已正确安装和配置。
  * 所有方法均为静态方法，无需实例化即可使用。
  * </p>
+ *
+ * @author znlgis
+ * @version 1.0.0
+ * @since 1.0.0
  */
 public class GdalCmdUtil {
     /**

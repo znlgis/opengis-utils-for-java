@@ -12,6 +12,9 @@ import lombok.Getter;
  * 提供与GDAL驱动名称的映射关系。
  * </p>
  *
+ * @author znlgis
+ * @version 1.0.0
+ * @since 1.0.0
  * @see OguLayerUtil
  * @see OgrUtil
  */

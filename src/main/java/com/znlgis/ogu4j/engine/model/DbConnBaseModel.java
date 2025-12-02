@@ -11,6 +11,9 @@ import lombok.Data;
  * 主要用于PostGIS等空间数据库的连接配置。
  * </p>
  *
+ * @author znlgis
+ * @version 1.0.0
+ * @since 1.0.0
  * @see PostgisUtil
  * @see OguLayerUtil#fromPostGIS
  * @see OguLayerUtil#toPostGIS

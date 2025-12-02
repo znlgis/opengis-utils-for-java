@@ -19,6 +19,10 @@ import java.util.stream.Collectors;
  * 统一的GIS图层定义，提供图层名称、坐标系、几何类型、字段定义和要素集合等属性。
  * 支持JSON序列化/反序列化，以及要素过滤功能。
  * </p>
+ *
+ * @author znlgis
+ * @version 1.0.0
+ * @since 1.0.0
  */
 @Data
 public class OguLayer implements Serializable {

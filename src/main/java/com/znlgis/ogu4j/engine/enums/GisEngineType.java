@@ -12,6 +12,9 @@ import lombok.Getter;
  * AUTO模式会自动选择可用的引擎，优先使用GDAL。
  * </p>
  *
+ * @author znlgis
+ * @version 1.0.0
+ * @since 1.0.0
  * @see OguLayerUtil
  */
 @Getter

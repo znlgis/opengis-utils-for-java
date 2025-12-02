@@ -15,6 +15,22 @@
 
 OGU4J（OpenGIS Utils for Java）是一个基于开源GIS库（GeoTools、JTS、GDAL/OGR、ESRI Geometry API）的Java GIS二次开发工具库。它提供了统一的图层模型和便捷的格式转换功能，简化了GIS数据的读取、处理和导出操作。
 
+### 项目架构
+
+```
+com.znlgis.ogu4j
+├── datasource          # 数据源工具（OguLayerUtil、GtTxtUtil）
+├── engine              # GIS引擎核心
+│   ├── enums           # 枚举类型（GeometryType、FieldDataType、GisEngineType等）
+│   ├── io              # 读写器接口（LayerReader、LayerWriter）
+│   ├── model           # 数据模型
+│   │   └── layer       # 图层模型（OguLayer、OguFeature、OguField等）
+│   └── util            # 引擎工具（CrsUtil、PostgisUtil、OgrUtil等）
+├── exception           # 异常类（OguException及其子类）
+├── geometry            # 几何处理（GeometryUtil）
+└── utils               # 通用工具（ZipUtil、EncodingUtil、SortUtil等）
+```
+
 ### 主要特性
 
 - 🗂️ **统一图层模型**：提供简洁的图层、要素、字段抽象，屏蔽底层GIS库差异
@@ -99,74 +115,116 @@ feature.setValue("fieldName", newValue);
 
 ### 图层格式转换
 
-使用 `OguLayerConverter` 进行各种格式间的转换：
+使用 `OguLayerUtil` 进行各种格式间的转换：
 
 #### Shapefile
 
 ```java
+import com.znlgis.ogu4j.datasource.OguLayerUtil;
+import com.znlgis.ogu4j.engine.enums.DataFormatType;
+import com.znlgis.ogu4j.engine.enums.GisEngineType;
+
 // 从Shapefile读取（支持属性过滤和空间过滤）
-OguLayer layer = OguLayerConverter.fromShapefile(
-    shpPath, 
-    "NAME = '北京'",           // 属性过滤条件（CQL表达式）
-    spatialFilterWkt,          // 空间过滤条件（WKT格式）
-    GisEngineType.GEOTOOLS     // 使用的GIS引擎
+OguLayer layer = OguLayerUtil.readLayer(
+    DataFormatType.SHP,
+    shpPath,
+    null,                       // 图层名称（Shapefile可为null）
+    "NAME = '北京'",            // 属性过滤条件（CQL表达式）
+    spatialFilterWkt,           // 空间过滤条件（WKT格式）
+    GisEngineType.GEOTOOLS      // 使用的GIS引擎
 );
 
 // 保存为Shapefile
-OguLayerConverter.toShapefile(layer, shpPath, GisEngineType.GEOTOOLS);
+OguLayerUtil.writeLayer(
+    DataFormatType.SHP,
+    layer,
+    shpPath,
+    null,
+    null,
+    GisEngineType.GEOTOOLS
+);
 ```
 
 #### GeoJSON
 
 ```java
 // 从GeoJSON读取
-OguLayer layer = OguLayerConverter.fromGeoJSON(geojsonPath, GisEngineType.GEOTOOLS);
+OguLayer layer = OguLayerUtil.readLayer(
+    DataFormatType.GEOJSON,
+    geojsonPath,
+    null, null, null,
+    GisEngineType.GEOTOOLS
+);
 
 // 保存为GeoJSON
-OguLayerConverter.toGeoJSON(layer, geojsonPath, GisEngineType.GEOTOOLS);
+OguLayerUtil.writeLayer(
+    DataFormatType.GEOJSON,
+    layer,
+    geojsonPath,
+    null, null,
+    GisEngineType.GEOTOOLS
+);
 ```
 
 #### FileGDB（需要GDAL支持）
 
 ```java
 // 从FileGDB读取指定图层
-OguLayer layer = OguLayerConverter.fromFileGDB(
-    gdbPath, 
-    "layerName", 
-    attributeFilter, 
-    spatialFilterWkt, 
+OguLayer layer = OguLayerUtil.readLayer(
+    DataFormatType.FILEGDB,
+    gdbPath,
+    "layerName",
+    attributeFilter,
+    spatialFilterWkt,
     GisEngineType.GDAL
 );
 
 // 保存到FileGDB
-OguLayerConverter.toFileGDB(layer, gdbPath, "featureDataset", "layerName", GisEngineType.GDAL);
+Map<String, Object> options = new HashMap<>();
+options.put("featureDataset", "datasetName");
+OguLayerUtil.writeLayer(
+    DataFormatType.FILEGDB,
+    layer,
+    gdbPath,
+    "layerName",
+    options,
+    GisEngineType.GDAL
+);
 ```
 
 #### PostGIS
 
 ```java
-// 配置数据库连接
-DbConnBaseModel dbConn = new DbConnBaseModel();
-dbConn.setDbtype("postgis");
-dbConn.setHost("localhost");
-dbConn.setPort("5432");
-dbConn.setDatabase("gisdb");
-dbConn.setSchema("public");
-dbConn.setUser("postgres");
-dbConn.setPasswd("password");
+// 构建PostGIS连接字符串
+String connStr = "PG: host=localhost port=5432 dbname=gisdb user=postgres password=*** active_schema=public";
 
 // 从PostGIS读取
-OguLayer layer = OguLayerConverter.fromPostGIS(dbConn, "layerName", null, null, GisEngineType.GEOTOOLS);
+OguLayer layer = OguLayerUtil.readLayer(
+    DataFormatType.POSTGIS,
+    connStr,
+    "layerName",
+    null, null,
+    GisEngineType.GEOTOOLS
+);
 
 // 保存到PostGIS
-OguLayerConverter.toPostGIS(layer, dbConn, "layerName", GisEngineType.GEOTOOLS);
+OguLayerUtil.writeLayer(
+    DataFormatType.POSTGIS,
+    layer,
+    connStr,
+    "layerName",
+    null,
+    GisEngineType.GEOTOOLS
+);
 ```
 
 #### 国土TXT坐标文件
 
 ```java
+import com.znlgis.ogu4j.datasource.GtTxtUtil;
+
 // 从TXT文件读取
-OguLayer layer = OguLayerConverter.fromTxtFile(txtPath, null);
+OguLayer layer = GtTxtUtil.loadTxt(txtPath, null);
 
 // 保存为TXT文件
 OguLayerMetadata metadata = new OguLayerMetadata();
@@ -177,160 +235,153 @@ metadata.setProjectionType("高斯克吕格");
 metadata.setMeasureUnit("米");
 
 int zoneNumber = 39; // 带号
-OguLayerConverter.toTxtFile(layer, txtPath, metadata, null, zoneNumber);
+GtTxtUtil.saveTxt(layer, txtPath, metadata, null, zoneNumber);
 ```
 
 ### 几何格式转换
 
-使用 `GeometryConverter` 进行几何格式转换：
+使用 `GeometryUtil` 进行几何格式转换：
 
 ```java
+import com.znlgis.ogu4j.geometry.GeometryUtil;
+
 // WKT <-> JTS Geometry
-Geometry geom = GeometryConverter.wkt2Geometry(wkt);
-String wkt = GeometryConverter.geometry2Wkt(geom);
+Geometry geom = GeometryUtil.wkt2Geometry(wkt);
+String wkt = GeometryUtil.geometry2Wkt(geom);
 
 // GeoJSON <-> JTS Geometry
-Geometry geom = GeometryConverter.geojson2Geometry(geojson);
-String geojson = GeometryConverter.geometry2Geojson(geom);
+Geometry geom = GeometryUtil.geojson2Geometry(geojson);
+String geojson = GeometryUtil.geometry2Geojson(geom);
 
 // WKT <-> GeoJSON
-String geojson = GeometryConverter.wkt2Geojson(wkt);
-String wkt = GeometryConverter.geojson2Wkt(geojson);
+String geojson = GeometryUtil.wkt2Geojson(wkt);
+String wkt = GeometryUtil.geojson2Wkt(geojson);
 
 // WKT <-> ESRI JSON
-String esriJson = GeometryConverter.wkt2EsriJson(wkt, wkid);
-String wkt = GeometryConverter.esriJson2Wkt(esriJson);
+String esriJson = GeometryUtil.wkt2EsriJson(wkt, wkid);
+String wkt = GeometryUtil.esriJson2Wkt(esriJson);
 
 // GeoJSON <-> ESRI JSON
-String esriJson = GeometryConverter.geoJson2EsriJson(wkid, geojson);
-String geojson = GeometryConverter.esriJson2GeoJson(esriJson);
+String esriJson = GeometryUtil.geoJson2EsriJson(wkid, geojson);
+String geojson = GeometryUtil.esriJson2GeoJson(esriJson);
 
 // ESRI JSON <-> JTS Geometry
-Geometry geom = GeometryConverter.esriJson2Geometry(esriJson);
-String esriJson = GeometryConverter.geometry2EsriJson(geom, wkid);
+Geometry geom = GeometryUtil.esriJson2Geometry(esriJson);
+String esriJson = GeometryUtil.geometry2EsriJson(geom, wkid);
 ```
 
 ### 几何空间分析
 
-#### JTS几何工具（JtsGeometryUtil）
+`GeometryUtil` 提供了两套几何分析方法：基于JTS Geometry对象的方法和基于WKT字符串的方法（后缀为Wkt）。
+
+#### 基于JTS Geometry对象
 
 ```java
+import com.znlgis.ogu4j.geometry.GeometryUtil;
+
 // 空间关系判断
-boolean result = JtsGeometryUtil.intersects(geomA, geomB);
-boolean result = JtsGeometryUtil.contains(geomA, geomB);
-boolean result = JtsGeometryUtil.within(geomA, geomB);
-boolean result = JtsGeometryUtil.touches(geomA, geomB);
-boolean result = JtsGeometryUtil.crosses(geomA, geomB);
-boolean result = JtsGeometryUtil.overlaps(geomA, geomB);
-boolean result = JtsGeometryUtil.disjoint(geomA, geomB);
+boolean result = GeometryUtil.intersects(geomA, geomB);
+boolean result = GeometryUtil.contains(geomA, geomB);
+boolean result = GeometryUtil.within(geomA, geomB);
+boolean result = GeometryUtil.touches(geomA, geomB);
+boolean result = GeometryUtil.crosses(geomA, geomB);
+boolean result = GeometryUtil.overlaps(geomA, geomB);
+boolean result = GeometryUtil.disjoint(geomA, geomB);
 
 // 空间分析
-Geometry buffer = JtsGeometryUtil.buffer(geom, distance);
-Geometry intersection = JtsGeometryUtil.intersection(geomA, geomB);
-Geometry union = JtsGeometryUtil.union(geomA, geomB);
-Geometry difference = JtsGeometryUtil.difference(geomA, geomB);
-Geometry symDifference = JtsGeometryUtil.symDifference(geomA, geomB);
+Geometry buffer = GeometryUtil.buffer(geom, distance);
+Geometry intersection = GeometryUtil.intersection(geomA, geomB);
+Geometry union = GeometryUtil.union(geomA, geomB);
+Geometry difference = GeometryUtil.difference(geomA, geomB);
+Geometry symDifference = GeometryUtil.symDifference(geomA, geomB);
 
 // 几何属性
-double area = JtsGeometryUtil.area(geom);
-double length = JtsGeometryUtil.length(geom);
-Geometry centroid = JtsGeometryUtil.centroid(geom);
-Geometry interiorPoint = JtsGeometryUtil.interiorPoint(geom);
-int dimension = JtsGeometryUtil.dimension(geom);
-int numPoints = JtsGeometryUtil.numPoints(geom);
-GeometryType geometryType = JtsGeometryUtil.geometryType(geom);
-boolean isEmpty = JtsGeometryUtil.isEmpty(geom);
+double area = GeometryUtil.area(geom);
+double length = GeometryUtil.length(geom);
+Geometry centroid = GeometryUtil.centroid(geom);
+Geometry interiorPoint = GeometryUtil.interiorPoint(geom);
+int dimension = GeometryUtil.dimension(geom);
+int numPoints = GeometryUtil.numPoints(geom);
+GeometryType geometryType = GeometryUtil.geometryType(geom);
+boolean isEmpty = GeometryUtil.isEmpty(geom);
 
 // 几何边界与外包矩形
-Geometry boundary = JtsGeometryUtil.boundary(geom);
-Geometry envelope = JtsGeometryUtil.envelope(geom);
+Geometry boundary = GeometryUtil.boundary(geom);
+Geometry envelope = GeometryUtil.envelope(geom);
 
 // 凸包与凹包
-Geometry convexHull = JtsGeometryUtil.convexHull(geom);
-Geometry concaveHull = JtsGeometryUtil.concaveHull(geom);
+Geometry convexHull = GeometryUtil.convexHull(geom);
+Geometry concaveHull = GeometryUtil.concaveHull(geom);
 
 // 拓扑验证与简化
-TopologyValidationResult validResult = JtsGeometryUtil.isValid(geom);
-SimpleGeometryResult simpleResult = JtsGeometryUtil.isSimple(geom);
-Geometry simplified = JtsGeometryUtil.simplify(geom, tolerance);
-Geometry validated = JtsGeometryUtil.validate(geom);
-Geometry densified = JtsGeometryUtil.densify(geom, distance);
+TopologyValidationResult validResult = GeometryUtil.isValid(geom);
+SimpleGeometryResult simpleResult = GeometryUtil.isSimple(geom);
+Geometry simplified = GeometryUtil.simplify(geom, tolerance);
+Geometry validated = GeometryUtil.validate(geom);
+Geometry densified = GeometryUtil.densify(geom, distance);
 
 // 几何相等判断
-boolean equalsExact = JtsGeometryUtil.equalsExact(geomA, geomB);
-boolean equalsExactTol = JtsGeometryUtil.equalsExactTolerance(geomA, geomB, tolerance);
-boolean equalsNorm = JtsGeometryUtil.equalsNorm(geomA, geomB);
-boolean equalsTopo = JtsGeometryUtil.equalsTopo(geomA, geomB);
+boolean equalsExact = GeometryUtil.equalsExact(geomA, geomB);
+boolean equalsExactTol = GeometryUtil.equalsExactTolerance(geomA, geomB, tolerance);
+boolean equalsNorm = GeometryUtil.equalsNorm(geomA, geomB);
+boolean equalsTopo = GeometryUtil.equalsTopo(geomA, geomB);
 
 // 空间关系模式
-boolean relateResult = JtsGeometryUtil.relatePattern(geomA, geomB, "T*T***FF*");
-String relate = JtsGeometryUtil.relate(geomA, geomB);
+boolean relateResult = GeometryUtil.relatePattern(geomA, geomB, "T*T***FF*");
+String relate = GeometryUtil.relate(geomA, geomB);
 
 // 距离计算
-double distance = JtsGeometryUtil.distance(geomA, geomB);
-boolean withinDistance = JtsGeometryUtil.isWithinDistance(geomA, geomB, maxDistance);
+double distance = GeometryUtil.distance(geomA, geomB);
+boolean withinDistance = GeometryUtil.isWithinDistance(geomA, geomB, maxDistance);
 
 // 多边形操作
-Geometry splitResult = JtsGeometryUtil.splitPolygon(polygon, line);
-Geometry polygonized = JtsGeometryUtil.polygonize(geom);
+Geometry splitResult = GeometryUtil.splitPolygon(polygon, line);
+Geometry polygonized = GeometryUtil.polygonize(geom);
 ```
 
-#### ESRI几何工具（EsriGeometryUtil）
+#### 基于WKT字符串（使用ESRI Geometry API）
 
 ```java
-// 几何创建
-Geometry geom = EsriGeometryUtil.createGeometryByWkt(wkt);
-Geometry geom = EsriGeometryUtil.createGeometryByGeoJson(geojson);
-Geometry geom = EsriGeometryUtil.createGeometryByJson(esriJson);
-
-// 几何输出
-String wkt = EsriGeometryUtil.toWkt(geometry);
-String geojson = EsriGeometryUtil.toGeoJson(geometry);
-String esriJson = EsriGeometryUtil.toEsriJson(wkid, geometry);
-
-// 格式转换
-String wkt = EsriGeometryUtil.esriJson2Wkt(esriJson);
-String esriJson = EsriGeometryUtil.wkt2EsriJson(wkt);
-
-// 空间关系判断（需要指定坐标系）
-boolean result = EsriGeometryUtil.intersects(wktA, wktB, wkid);
-boolean result = EsriGeometryUtil.contains(wktA, wktB, wkid);
-boolean result = EsriGeometryUtil.within(wktA, wktB, wkid);
-boolean result = EsriGeometryUtil.disjoint(wktA, wktB, wkid);
-boolean result = EsriGeometryUtil.touches(wktA, wktB, wkid);
-boolean result = EsriGeometryUtil.crosses(wktA, wktB, wkid);
-boolean result = EsriGeometryUtil.overlaps(wktA, wktB, wkid);
-boolean result = EsriGeometryUtil.equals(wktA, wktB, wkid);
-boolean result = EsriGeometryUtil.relatePattern(wktA, wktB, wkid, pattern);
+// 空间关系判断（需要指定坐标系WKID）
+boolean result = GeometryUtil.intersectsWkt(wktA, wktB, wkid);
+boolean result = GeometryUtil.containsWkt(wktA, wktB, wkid);
+boolean result = GeometryUtil.withinWkt(wktA, wktB, wkid);
+boolean result = GeometryUtil.disjointWkt(wktA, wktB, wkid);
+boolean result = GeometryUtil.touchesWkt(wktA, wktB, wkid);
+boolean result = GeometryUtil.crossesWkt(wktA, wktB, wkid);
+boolean result = GeometryUtil.overlapsWkt(wktA, wktB, wkid);
+boolean result = GeometryUtil.equalsWkt(wktA, wktB, wkid);
+boolean result = GeometryUtil.relatePatternWkt(wktA, wktB, wkid, pattern);
 
 // 空间分析
-String buffer = EsriGeometryUtil.buffer(wkt, wkid, distance);
-String intersection = EsriGeometryUtil.intersection(wktA, wktB, wkid);
-String union = EsriGeometryUtil.union(wktList, wkid);
-String difference = EsriGeometryUtil.difference(wktA, wktB, wkid);
-String symDifference = EsriGeometryUtil.symDifference(wktA, wktB, wkid);
-String convexHull = EsriGeometryUtil.convexHull(wkt);
-String boundary = EsriGeometryUtil.boundary(wkt);
+String buffer = GeometryUtil.bufferWkt(wkt, wkid, distance);
+String intersection = GeometryUtil.intersectionWkt(wktA, wktB, wkid);
+String union = GeometryUtil.unionWkt(wktList, wkid);
+String difference = GeometryUtil.differenceWkt(wktA, wktB, wkid);
+String symDifference = GeometryUtil.symDifferenceWkt(wktA, wktB, wkid);
+String convexHull = GeometryUtil.convexHullWkt(wkt);
+String boundary = GeometryUtil.boundaryWkt(wkt);
 
 // 几何属性
-double area = EsriGeometryUtil.area(wkt);
-double length = EsriGeometryUtil.length(wkt);
-String centroid = EsriGeometryUtil.centroid(wkt);
-int dimension = EsriGeometryUtil.dimension(wkt);
-boolean isEmpty = EsriGeometryUtil.isEmpty(wkt);
-double distance = EsriGeometryUtil.distance(wktA, wktB, wkid);
-GeometryType geometryType = EsriGeometryUtil.geometryType(wkt);
-boolean isSimple = EsriGeometryUtil.isSimple(wkt, wkid);
+double area = GeometryUtil.areaWkt(wkt);
+double length = GeometryUtil.lengthWkt(wkt);
+String centroid = GeometryUtil.centroidWkt(wkt);
+int dimension = GeometryUtil.dimensionWkt(wkt);
+boolean isEmpty = GeometryUtil.isEmptyWkt(wkt);
+double distance = GeometryUtil.distanceWkt(wktA, wktB, wkid);
+GeometryType geometryType = GeometryUtil.geometryTypeWkt(wkt);
+boolean isSimple = GeometryUtil.isSimpleWkt(wkt, wkid);
 
 // 几何简化
-String simplified = EsriGeometryUtil.simplify(wkt, wkid);
+String simplified = GeometryUtil.simplifyWkt(wkt, wkid);
 ```
 
 ### 坐标系工具（CrsUtil）
 
-位于 `com.znlgis.ogu4j.utils` 包中：
+位于 `com.znlgis.ogu4j.engine.util` 包中：
 
 ```java
+import com.znlgis.ogu4j.engine.util.CrsUtil;
 // 坐标转换（WKT字符串）
 String transformedWkt = CrsUtil.transform(wkt, sourceWkid, targetWkid);
 
@@ -369,7 +420,10 @@ Map<Integer, CoordinateReferenceSystem> crsList = CrsUtil.getSupportedCRSList();
 用于封装几何对象拓扑验证的结果，包含验证是否通过、错误位置、错误类型和错误信息：
 
 ```java
-TopologyValidationResult result = JtsGeometryUtil.isValid(geom);
+import com.znlgis.ogu4j.geometry.GeometryUtil;
+import com.znlgis.ogu4j.engine.model.TopologyValidationResult;
+
+TopologyValidationResult result = GeometryUtil.isValid(geom);
 if (!result.isValid()) {
     System.out.println("错误类型: " + result.getErrorType().getDesc());
     System.out.println("错误位置: " + result.getCoordinate());
@@ -382,7 +436,10 @@ if (!result.isValid()) {
 用于封装几何对象简单性检查的结果，简单几何是指不存在自相交或重复点的几何对象：
 
 ```java
-SimpleGeometryResult result = JtsGeometryUtil.isSimple(geom);
+import com.znlgis.ogu4j.geometry.GeometryUtil;
+import com.znlgis.ogu4j.engine.model.SimpleGeometryResult;
+
+SimpleGeometryResult result = GeometryUtil.isSimple(geom);
 if (!result.isSimple()) {
     System.out.println("非简单点位置: " + result.getNonSimplePts());
 }
@@ -414,15 +471,21 @@ if (!result.isSimple()) {
 | `com.znlgis.ogu4j.engine.model.layer` | 图层模型类（OguLayer、OguFeature、OguField、OguFieldValue、OguCoordinate、OguFeatureFilter、OguLayerMetadata） |
 | `com.znlgis.ogu4j.engine.model` | 数据模型类（DbConnBaseModel、GdbGroupModel、TopologyValidationResult、SimpleGeometryResult） |
 | `com.znlgis.ogu4j.engine.enums` | 枚举类型（GeometryType、FieldDataType、GisEngineType、DataFormatType、TopologyValidationErrorType） |
-| `com.znlgis.ogu4j.geometry` | 几何处理工具（JtsGeometryUtil、EsriGeometryUtil、GeometryConverter） |
-| `com.znlgis.ogu4j.datasource` | 数据源工具类（ShpUtil、PostgisUtil、OgrUtil、GeotoolsUtil、GtTxtUtil、OguLayerConverter） |
-| `com.znlgis.ogu4j.utils` | 通用工具类（CrsUtil、ZipUtil、EncodingUtil、SortUtil、NumUtil、GdalCmdUtil） |
+| `com.znlgis.ogu4j.engine.io` | 读写器接口（LayerReader、LayerWriter） |
+| `com.znlgis.ogu4j.engine.util` | 引擎工具类（CrsUtil、ShpUtil、PostgisUtil、OgrUtil、GeotoolsUtil、GdalCmdUtil） |
+| `com.znlgis.ogu4j.engine` | GIS引擎（GisEngine、GisEngineFactory、GeoToolsEngine、GdalEngine及其Reader/Writer） |
+| `com.znlgis.ogu4j.geometry` | 几何处理工具（GeometryUtil） |
+| `com.znlgis.ogu4j.datasource` | 数据源工具类（OguLayerUtil、GtTxtUtil） |
+| `com.znlgis.ogu4j.utils` | 通用工具类（ZipUtil、EncodingUtil、SortUtil、NumUtil） |
+| `com.znlgis.ogu4j.exception` | 异常类（OguException、DataSourceException、FormatParseException、EngineNotSupportedException、LayerValidationException、TopologyException） |
 
 ### 实用工具类
 
 #### ZipUtil - ZIP压缩解压工具
 
 ```java
+import com.znlgis.ogu4j.utils.ZipUtil;
+
 // 压缩文件夹
 ZipUtil.zip(folder, "output.zip");
 ZipUtil.zip(folder, "output.zip", StandardCharsets.UTF_8);
@@ -435,6 +498,8 @@ ZipUtil.unzip("input.zip", destPath, StandardCharsets.UTF_8);
 #### EncodingUtil - 文件编码检测工具
 
 ```java
+import com.znlgis.ogu4j.utils.EncodingUtil;
+
 // 自动检测文件编码
 Charset charset = EncodingUtil.getFileEncoding(file);
 ```
@@ -442,6 +507,8 @@ Charset charset = EncodingUtil.getFileEncoding(file);
 #### SortUtil - 自然排序工具
 
 ```java
+import com.znlgis.ogu4j.utils.SortUtil;
+
 // 包含数字的字符串自然排序
 int result = SortUtil.compareString("第5章", "第10章");  // 返回 -1
 ```
@@ -449,6 +516,8 @@ int result = SortUtil.compareString("第5章", "第10章");  // 返回 -1
 #### GdalCmdUtil - GDAL命令行工具
 
 ```java
+import com.znlgis.ogu4j.engine.util.GdalCmdUtil;
+
 // 获取GDB图层结构
 GdbGroupModel structure = GdalCmdUtil.getGdbDataStructure(gdbPath);
 ```
@@ -456,6 +525,8 @@ GdbGroupModel structure = GdalCmdUtil.getGdbDataStructure(gdbPath);
 #### NumUtil - 数字格式化工具
 
 ```java
+import com.znlgis.ogu4j.utils.NumUtil;
+
 // 去除科学计数法显示
 String plainString = NumUtil.getPlainString(1.234E10);  // 返回 "12340000000"
 ```
@@ -488,6 +559,22 @@ String plainString = NumUtil.getPlainString(1.234E10);  // 返回 "12340000000"
 ### Introduction
 
 OGU4J (OpenGIS Utils for Java) is a Java GIS development toolkit based on open-source GIS libraries (GeoTools, JTS, GDAL/OGR, ESRI Geometry API). It provides a unified layer model and convenient format conversion functions to simplify GIS data reading, processing, and exporting operations.
+
+### Project Structure
+
+```
+com.znlgis.ogu4j
+├── datasource          # Data source utilities (OguLayerUtil, GtTxtUtil)
+├── engine              # GIS engine core
+│   ├── enums           # Enumerations (GeometryType, FieldDataType, GisEngineType, etc.)
+│   ├── io              # Reader/Writer interfaces (LayerReader, LayerWriter)
+│   ├── model           # Data models
+│   │   └── layer       # Layer models (OguLayer, OguFeature, OguField, etc.)
+│   └── util            # Engine utilities (CrsUtil, PostgisUtil, OgrUtil, etc.)
+├── exception           # Exception classes (OguException and subclasses)
+├── geometry            # Geometry processing (GeometryUtil)
+└── utils               # Common utilities (ZipUtil, EncodingUtil, SortUtil, etc.)
+```
 
 ### Features
 
@@ -551,17 +638,34 @@ String json = layer.toJSON();
 ### Format Conversion
 
 ```java
+import com.znlgis.ogu4j.datasource.OguLayerUtil;
+import com.znlgis.ogu4j.engine.enums.DataFormatType;
+import com.znlgis.ogu4j.engine.enums.GisEngineType;
+
 // Shapefile
-OguLayer layer = OguLayerConverter.fromShapefile(shpPath, null, null, GisEngineType.GEOTOOLS);
-OguLayerConverter.toShapefile(layer, shpPath, GisEngineType.GEOTOOLS);
+OguLayer layer = OguLayerUtil.readLayer(
+    DataFormatType.SHP, shpPath, null, null, null, GisEngineType.GEOTOOLS);
+OguLayerUtil.writeLayer(
+    DataFormatType.SHP, layer, shpPath, null, null, GisEngineType.GEOTOOLS);
 
 // GeoJSON
-OguLayer layer = OguLayerConverter.fromGeoJSON(geojsonPath, GisEngineType.GEOTOOLS);
-OguLayerConverter.toGeoJSON(layer, geojsonPath, GisEngineType.GEOTOOLS);
+OguLayer layer = OguLayerUtil.readLayer(
+    DataFormatType.GEOJSON, geojsonPath, null, null, null, GisEngineType.GEOTOOLS);
+OguLayerUtil.writeLayer(
+    DataFormatType.GEOJSON, layer, geojsonPath, null, null, GisEngineType.GEOTOOLS);
 
 // FileGDB (requires GDAL)
-OguLayer layer = OguLayerConverter.fromFileGDB(gdbPath, "layerName", null, null, GisEngineType.GDAL);
-OguLayerConverter.toFileGDB(layer, gdbPath, "dataset", "layerName", GisEngineType.GDAL);
+OguLayer layer = OguLayerUtil.readLayer(
+    DataFormatType.FILEGDB, gdbPath, "layerName", null, null, GisEngineType.GDAL);
+OguLayerUtil.writeLayer(
+    DataFormatType.FILEGDB, layer, gdbPath, "layerName", options, GisEngineType.GDAL);
+
+// PostGIS
+String connStr = "PG: host=localhost port=5432 dbname=gisdb user=postgres password=*** active_schema=public";
+OguLayer layer = OguLayerUtil.readLayer(
+    DataFormatType.POSTGIS, connStr, "layerName", null, null, GisEngineType.GEOTOOLS);
+OguLayerUtil.writeLayer(
+    DataFormatType.POSTGIS, layer, connStr, "layerName", null, GisEngineType.GEOTOOLS);
 ```
 
 ### Requirements
@@ -589,7 +693,10 @@ OguLayerConverter.toFileGDB(layer, gdbPath, "dataset", "layerName", GisEngineTyp
 Encapsulates the result of geometry topology validation, including validation status, error location, error type, and error message:
 
 ```java
-TopologyValidationResult result = JtsGeometryUtil.isValid(geom);
+import com.znlgis.ogu4j.geometry.GeometryUtil;
+import com.znlgis.ogu4j.engine.model.TopologyValidationResult;
+
+TopologyValidationResult result = GeometryUtil.isValid(geom);
 if (!result.isValid()) {
     System.out.println("Error Type: " + result.getErrorType().getDesc());
     System.out.println("Error Location: " + result.getCoordinate());
@@ -602,7 +709,10 @@ if (!result.isValid()) {
 Encapsulates the result of geometry simplicity check. A simple geometry has no self-intersections or repeated points:
 
 ```java
-SimpleGeometryResult result = JtsGeometryUtil.isSimple(geom);
+import com.znlgis.ogu4j.geometry.GeometryUtil;
+import com.znlgis.ogu4j.engine.model.SimpleGeometryResult;
+
+SimpleGeometryResult result = GeometryUtil.isSimple(geom);
 if (!result.isSimple()) {
     System.out.println("Non-simple point locations: " + result.getNonSimplePts());
 }
@@ -634,15 +744,21 @@ Defines various topology validation error types for geometry objects:
 | `com.znlgis.ogu4j.engine.model.layer` | Layer model classes (OguLayer, OguFeature, OguField, OguFieldValue, OguCoordinate, OguFeatureFilter, OguLayerMetadata) |
 | `com.znlgis.ogu4j.engine.model` | Data model classes (DbConnBaseModel, GdbGroupModel, TopologyValidationResult, SimpleGeometryResult) |
 | `com.znlgis.ogu4j.engine.enums` | Enumerations (GeometryType, FieldDataType, GisEngineType, DataFormatType, TopologyValidationErrorType) |
-| `com.znlgis.ogu4j.geometry` | Geometry utilities (JtsGeometryUtil, EsriGeometryUtil, GeometryConverter) |
-| `com.znlgis.ogu4j.datasource` | Data source utilities (ShpUtil, PostgisUtil, OgrUtil, GeotoolsUtil, GtTxtUtil, OguLayerConverter) |
-| `com.znlgis.ogu4j.utils` | Common utilities (CrsUtil, ZipUtil, EncodingUtil, SortUtil, NumUtil, GdalCmdUtil) |
+| `com.znlgis.ogu4j.engine.io` | Reader/Writer interfaces (LayerReader, LayerWriter) |
+| `com.znlgis.ogu4j.engine.util` | Engine utilities (CrsUtil, ShpUtil, PostgisUtil, OgrUtil, GeotoolsUtil, GdalCmdUtil) |
+| `com.znlgis.ogu4j.engine` | GIS engines (GisEngine, GisEngineFactory, GeoToolsEngine, GdalEngine and their Readers/Writers) |
+| `com.znlgis.ogu4j.geometry` | Geometry utilities (GeometryUtil) |
+| `com.znlgis.ogu4j.datasource` | Data source utilities (OguLayerUtil, GtTxtUtil) |
+| `com.znlgis.ogu4j.utils` | Common utilities (ZipUtil, EncodingUtil, SortUtil, NumUtil) |
+| `com.znlgis.ogu4j.exception` | Exception classes (OguException, DataSourceException, FormatParseException, EngineNotSupportedException, LayerValidationException, TopologyException) |
 
 ### Utility Classes
 
 #### ZipUtil - ZIP Compression/Decompression
 
 ```java
+import com.znlgis.ogu4j.utils.ZipUtil;
+
 // Compress a folder
 ZipUtil.zip(folder, "output.zip");
 
@@ -653,6 +769,8 @@ ZipUtil.unzip("input.zip", destPath);
 #### EncodingUtil - File Encoding Detection
 
 ```java
+import com.znlgis.ogu4j.utils.EncodingUtil;
+
 // Auto-detect file encoding
 Charset charset = EncodingUtil.getFileEncoding(file);
 ```
@@ -660,6 +778,8 @@ Charset charset = EncodingUtil.getFileEncoding(file);
 #### SortUtil - Natural Sorting
 
 ```java
+import com.znlgis.ogu4j.utils.SortUtil;
+
 // Natural string comparison with numbers
 int result = SortUtil.compareString("Chapter 5", "Chapter 10");  // returns -1
 ```
@@ -667,6 +787,8 @@ int result = SortUtil.compareString("Chapter 5", "Chapter 10");  // returns -1
 #### NumUtil - Number Formatting
 
 ```java
+import com.znlgis.ogu4j.utils.NumUtil;
+
 // Remove scientific notation display
 String plainString = NumUtil.getPlainString(1.234E10);  // returns "12340000000"
 ```
@@ -674,8 +796,26 @@ String plainString = NumUtil.getPlainString(1.234E10);  // returns "12340000000"
 #### GdalCmdUtil - GDAL Command Line Tool
 
 ```java
+import com.znlgis.ogu4j.engine.util.GdalCmdUtil;
+
 // Get GDB layer structure
 GdbGroupModel structure = GdalCmdUtil.getGdbDataStructure(gdbPath);
+```
+
+#### CrsUtil - Coordinate Reference System Utilities
+
+```java
+import com.znlgis.ogu4j.engine.util.CrsUtil;
+
+// Coordinate transformation
+String transformedWkt = CrsUtil.transform(wkt, sourceWkid, targetWkid);
+Geometry transformed = CrsUtil.transform(geometry, sourceWkid, targetWkid);
+
+// Layer reprojection
+OguLayer reprojected = CrsUtil.reproject(layer, targetWkid);
+
+// Get zone number
+int zoneNumber = CrsUtil.getDh(geometry);
 ```
 
 ### License

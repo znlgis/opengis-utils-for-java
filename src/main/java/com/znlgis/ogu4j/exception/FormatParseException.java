@@ -6,6 +6,10 @@ package com.znlgis.ogu4j.exception;
  * 当解析GIS数据格式（如GeoJSON、WKT、Shapefile等）失败时抛出此异常。
  * 可能的原因包括：格式不正确、编码错误、数据损坏等。
  * </p>
+ *
+ * @author znlgis
+ * @version 1.0.0
+ * @since 1.0.0
  */
 public class FormatParseException extends OguException {
 

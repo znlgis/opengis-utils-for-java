@@ -13,6 +13,10 @@ import java.util.regex.Pattern;
  * 提供包含数字的字符串自然排序功能，如"第5章" &lt; "第10章"。
  * 所有方法均为静态方法，无需实例化即可使用。
  * </p>
+ *
+ * @author znlgis
+ * @version 1.0.0
+ * @since 1.0.0
  */
 public class SortUtil {
     private static final Pattern SPLITSTRINGPATTERN = Pattern.compile("(\\D+)|(\\d+)");

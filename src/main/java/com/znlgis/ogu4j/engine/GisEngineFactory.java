@@ -11,6 +11,10 @@ import com.znlgis.ogu4j.exception.OguException;
  * 提供获取GIS引擎实例的工厂方法。
  * 支持根据引擎类型或数据格式自动选择合适的引擎。
  * </p>
+ *
+ * @author znlgis
+ * @version 1.0.0
+ * @since 1.0.0
  */
 public final class GisEngineFactory {
 
