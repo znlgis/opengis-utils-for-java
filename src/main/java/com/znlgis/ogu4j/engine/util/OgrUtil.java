@@ -77,7 +77,7 @@ public class OgrUtil {
      * @return OGR驱动对象
      * @throws RuntimeException 如果OGR未初始化
      */
-    private static Driver getDriver(DataFormatType driverType) {
+    private static Driver getDriver(DataFormatType driverType) throws EngineNotSupportedException {
         checkGdalEnv();
         return ogr.GetDriverByName(driverType.getGdalDriverName());
     }
@@ -92,7 +92,7 @@ public class OgrUtil {
      * @param path       数据源路径（文件路径或目录路径）
      * @return OGR数据源对象
      */
-    public static DataSource createDataSource(DataFormatType driverType, String path) {
+    public static DataSource createDataSource(DataFormatType driverType, String path) throws EngineNotSupportedException {
         Driver driver = getDriver(driverType);
         return driver.CreateDataSource(path);
     }
@@ -107,7 +107,7 @@ public class OgrUtil {
      * @param path       数据源路径（文件路径或目录路径）
      * @return OGR数据源对象，如果打开失败返回null
      */
-    public static DataSource openDataSource(DataFormatType driverType, String path) {
+    public static DataSource openDataSource(DataFormatType driverType, String path) throws EngineNotSupportedException {
         Driver driver = getDriver(driverType);
         return driver.Open(path, 1);
     }
@@ -304,7 +304,7 @@ public class OgrUtil {
      * @param options    创建选项
      */
     private static void initLayer(DataFormatType driverType, String path, OguLayer oguLayer, String layerName,
-                                  Vector options) {
+                                  Vector options) throws EngineNotSupportedException {
         DataSource dataSource = OgrUtil.openDataSource(driverType, path);
         if (dataSource == null) {
             dataSource = OgrUtil.createDataSource(driverType, path);
@@ -338,7 +338,7 @@ public class OgrUtil {
      * @param features   要素列表
      * @param layerName  图层名称，为空时使用第一个图层
      */
-    private static void oguFeatures2Layer(DataFormatType driverType, String path, List<OguField> fields, List<OguFeature> features, String layerName) {
+    private static void oguFeatures2Layer(DataFormatType driverType, String path, List<OguField> fields, List<OguFeature> features, String layerName) throws EngineNotSupportedException {
         DataSource dataSource = OgrUtil.openDataSource(driverType, path);
         Layer layer;
         if (CharSequenceUtil.isNotBlank(layerName)) {
@@ -448,7 +448,7 @@ public class OgrUtil {
      * @param layerName  图层名称
      * @param options    创建选项
      */
-    public static void oguLayer2Layer(DataFormatType driverType, String path, OguLayer oguLayer, String layerName, Vector options) {
+    public static void oguLayer2Layer(DataFormatType driverType, String path, OguLayer oguLayer, String layerName, Vector options) throws EngineNotSupportedException {
         initLayer(driverType, path, oguLayer, layerName, options);
         oguFeatures2Layer(driverType, path, oguLayer.getFields(), oguLayer.getFeatures(), layerName);
     }
@@ -467,7 +467,7 @@ public class OgrUtil {
      * @param layerName       图层名称
      * @param options         创建选项（可为null）
      */
-    public static void oguLayer2Layer4Postgis(DataFormatType driverType, DbConnBaseModel dbConnBaseModel, OguLayer oguLayer, String layerName, Vector options) {
+    public static void oguLayer2Layer4Postgis(DataFormatType driverType, DbConnBaseModel dbConnBaseModel, OguLayer oguLayer, String layerName, Vector options) throws EngineNotSupportedException {
         if (options == null) {
             options = new Vector();
         }
@@ -493,7 +493,7 @@ public class OgrUtil {
      * @param spatialFilterWkt 空间过滤条件（WKT格式），为null时不过滤
      * @return OguLayer图层对象
      */
-    public static OguLayer layer2OguLayer(DataFormatType driverType, String path, String layerName, String attributeFilter, String spatialFilterWkt) {
+    public static OguLayer layer2OguLayer(DataFormatType driverType, String path, String layerName, String attributeFilter, String spatialFilterWkt) throws EngineNotSupportedException {
         DataSource dataSource = OgrUtil.openDataSource(driverType, path);
         Layer layer = OgrUtil.getLayer(dataSource, layerName);
         OguLayer oguLayer = OgrUtil.layer2OguLayer(layer, attributeFilter, spatialFilterWkt);
