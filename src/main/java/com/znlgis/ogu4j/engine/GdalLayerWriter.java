@@ -2,15 +2,15 @@ package com.znlgis.ogu4j.engine;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.text.CharSequenceUtil;
-import com.znlgis.ogu4j.datasource.OgrUtil;
-import com.znlgis.ogu4j.datasource.PostgisUtil;
-import com.znlgis.ogu4j.enums.DataFormatType;
+import com.znlgis.ogu4j.engine.util.OgrUtil;
+import com.znlgis.ogu4j.engine.util.PostgisUtil;
+import com.znlgis.ogu4j.engine.enums.DataFormatType;
 import com.znlgis.ogu4j.exception.DataSourceException;
 import com.znlgis.ogu4j.exception.OguException;
 import com.znlgis.ogu4j.geometry.GeometryUtil;
-import com.znlgis.ogu4j.io.LayerWriter;
-import com.znlgis.ogu4j.model.DbConnBaseModel;
-import com.znlgis.ogu4j.model.layer.OguLayer;
+import com.znlgis.ogu4j.engine.io.LayerWriter;
+import com.znlgis.ogu4j.engine.model.DbConnBaseModel;
+import com.znlgis.ogu4j.engine.model.layer.OguLayer;
 import org.gdal.gdal.gdal;
 
 import java.util.Map;

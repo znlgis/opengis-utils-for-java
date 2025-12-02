@@ -1,11 +1,11 @@
 package com.znlgis.ogu4j.geometry;
 
 import com.esri.core.geometry.*;
-import com.znlgis.ogu4j.enums.GeometryType;
-import com.znlgis.ogu4j.enums.TopologyValidationErrorType;
-import com.znlgis.ogu4j.model.SimpleGeometryResult;
-import com.znlgis.ogu4j.model.TopologyValidationResult;
-import com.znlgis.ogu4j.model.layer.OguField;
+import com.znlgis.ogu4j.engine.enums.GeometryType;
+import com.znlgis.ogu4j.engine.enums.TopologyValidationErrorType;
+import com.znlgis.ogu4j.engine.model.SimpleGeometryResult;
+import com.znlgis.ogu4j.engine.model.TopologyValidationResult;
+import com.znlgis.ogu4j.engine.model.layer.OguField;
 import lombok.SneakyThrows;
 import org.geotools.geojson.geom.GeometryJSON;
 import org.geotools.geometry.jts.WKTReader2;

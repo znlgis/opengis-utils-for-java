@@ -45,7 +45,7 @@ OGU4J（OpenGIS Utils for Java）是一个基于开源GIS库（GeoTools、JTS、
 
 ### 核心图层模型
 
-本库提供了统一的简化图层模型，位于 `com.znlgis.ogu4j.model.layer` 包中：
+本库提供了统一的简化图层模型，位于 `com.znlgis.ogu4j.engine.model.layer` 包中：
 
 | 类名 | 说明 |
 |------|------|
@@ -328,7 +328,7 @@ String simplified = EsriGeometryUtil.simplify(wkt, wkid);
 
 ### 坐标系工具（CrsUtil）
 
-位于 `com.znlgis.ogu4j.common` 包中：
+位于 `com.znlgis.ogu4j.utils` 包中：
 
 ```java
 // 坐标转换（WKT字符串）
@@ -411,12 +411,12 @@ if (!result.isSimple()) {
 
 | 包名 | 说明 |
 |------|------|
-| `com.znlgis.ogu4j.model.layer` | 图层模型类（OguLayer、OguFeature、OguField、OguFieldValue、OguCoordinate、OguFeatureFilter、OguLayerMetadata） |
-| `com.znlgis.ogu4j.model` | 数据模型类（DbConnBaseModel、GdbGroupModel、TopologyValidationResult、SimpleGeometryResult） |
-| `com.znlgis.ogu4j.enums` | 枚举类型（GeometryType、FieldDataType、GisEngineType、DataFormatType、TopologyValidationErrorType） |
+| `com.znlgis.ogu4j.engine.model.layer` | 图层模型类（OguLayer、OguFeature、OguField、OguFieldValue、OguCoordinate、OguFeatureFilter、OguLayerMetadata） |
+| `com.znlgis.ogu4j.engine.model` | 数据模型类（DbConnBaseModel、GdbGroupModel、TopologyValidationResult、SimpleGeometryResult） |
+| `com.znlgis.ogu4j.engine.enums` | 枚举类型（GeometryType、FieldDataType、GisEngineType、DataFormatType、TopologyValidationErrorType） |
 | `com.znlgis.ogu4j.geometry` | 几何处理工具（JtsGeometryUtil、EsriGeometryUtil、GeometryConverter） |
 | `com.znlgis.ogu4j.datasource` | 数据源工具类（ShpUtil、PostgisUtil、OgrUtil、GeotoolsUtil、GtTxtUtil、OguLayerConverter） |
-| `com.znlgis.ogu4j.common` | 通用工具类（CrsUtil、ZipUtil、EncodingUtil、SortUtil、NumUtil、GdalCmdUtil） |
+| `com.znlgis.ogu4j.utils` | 通用工具类（CrsUtil、ZipUtil、EncodingUtil、SortUtil、NumUtil、GdalCmdUtil） |
 
 ### 实用工具类
 
@@ -519,7 +519,7 @@ OGU4J (OpenGIS Utils for Java) is a Java GIS development toolkit based on open-s
 
 ### Layer Model
 
-The library provides a unified simplified layer model in the `com.znlgis.ogu4j.model.layer` package:
+The library provides a unified simplified layer model in the `com.znlgis.ogu4j.engine.model.layer` package:
 
 | Class | Description |
 |-------|-------------|
@@ -631,12 +631,12 @@ Defines various topology validation error types for geometry objects:
 
 | Package | Description |
 |---------|-------------|
-| `com.znlgis.ogu4j.model.layer` | Layer model classes (OguLayer, OguFeature, OguField, OguFieldValue, OguCoordinate, OguFeatureFilter, OguLayerMetadata) |
-| `com.znlgis.ogu4j.model` | Data model classes (DbConnBaseModel, GdbGroupModel, TopologyValidationResult, SimpleGeometryResult) |
-| `com.znlgis.ogu4j.enums` | Enumerations (GeometryType, FieldDataType, GisEngineType, DataFormatType, TopologyValidationErrorType) |
+| `com.znlgis.ogu4j.engine.model.layer` | Layer model classes (OguLayer, OguFeature, OguField, OguFieldValue, OguCoordinate, OguFeatureFilter, OguLayerMetadata) |
+| `com.znlgis.ogu4j.engine.model` | Data model classes (DbConnBaseModel, GdbGroupModel, TopologyValidationResult, SimpleGeometryResult) |
+| `com.znlgis.ogu4j.engine.enums` | Enumerations (GeometryType, FieldDataType, GisEngineType, DataFormatType, TopologyValidationErrorType) |
 | `com.znlgis.ogu4j.geometry` | Geometry utilities (JtsGeometryUtil, EsriGeometryUtil, GeometryConverter) |
 | `com.znlgis.ogu4j.datasource` | Data source utilities (ShpUtil, PostgisUtil, OgrUtil, GeotoolsUtil, GtTxtUtil, OguLayerConverter) |
-| `com.znlgis.ogu4j.common` | Common utilities (CrsUtil, ZipUtil, EncodingUtil, SortUtil, NumUtil, GdalCmdUtil) |
+| `com.znlgis.ogu4j.utils` | Common utilities (CrsUtil, ZipUtil, EncodingUtil, SortUtil, NumUtil, GdalCmdUtil) |
 
 ### Utility Classes
 

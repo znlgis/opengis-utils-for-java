@@ -1,13 +1,13 @@
 package com.znlgis.ogu4j.engine;
 
 import cn.hutool.core.io.FileUtil;
-import com.znlgis.ogu4j.datasource.OgrUtil;
-import com.znlgis.ogu4j.datasource.ShpUtil;
-import com.znlgis.ogu4j.enums.DataFormatType;
+import com.znlgis.ogu4j.engine.util.OgrUtil;
+import com.znlgis.ogu4j.engine.util.ShpUtil;
+import com.znlgis.ogu4j.engine.enums.DataFormatType;
 import com.znlgis.ogu4j.exception.DataSourceException;
 import com.znlgis.ogu4j.exception.OguException;
-import com.znlgis.ogu4j.io.LayerReader;
-import com.znlgis.ogu4j.model.layer.OguLayer;
+import com.znlgis.ogu4j.engine.io.LayerReader;
+import com.znlgis.ogu4j.engine.model.layer.OguLayer;
 import org.gdal.gdal.gdal;
 
 import java.nio.charset.Charset;

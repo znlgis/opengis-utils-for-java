@@ -1,7 +1,7 @@
 package com.znlgis.ogu4j.engine;
 
-import com.znlgis.ogu4j.enums.DataFormatType;
-import com.znlgis.ogu4j.enums.GisEngineType;
+import com.znlgis.ogu4j.engine.enums.DataFormatType;
+import com.znlgis.ogu4j.engine.enums.GisEngineType;
 import com.znlgis.ogu4j.exception.EngineNotSupportedException;
 import com.znlgis.ogu4j.exception.OguException;
 

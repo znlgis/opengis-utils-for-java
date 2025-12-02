@@ -1,10 +1,10 @@
 package com.znlgis.ogu4j.engine;
 
-import com.znlgis.ogu4j.enums.DataFormatType;
+import com.znlgis.ogu4j.engine.enums.DataFormatType;
 import com.znlgis.ogu4j.exception.OguException;
-import com.znlgis.ogu4j.io.LayerReader;
-import com.znlgis.ogu4j.io.LayerWriter;
-import com.znlgis.ogu4j.model.layer.OguLayer;
+import com.znlgis.ogu4j.engine.io.LayerReader;
+import com.znlgis.ogu4j.engine.io.LayerWriter;
+import com.znlgis.ogu4j.engine.model.layer.OguLayer;
 
 import java.util.Map;
 
