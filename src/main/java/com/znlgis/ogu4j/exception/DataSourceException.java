@@ -6,6 +6,10 @@ package com.znlgis.ogu4j.exception;
  * 当连接GIS数据源（如Shapefile、PostGIS数据库、FileGDB等）失败时抛出此异常。
  * 可能的原因包括：文件不存在、数据库连接失败、权限不足等。
  * </p>
+ *
+ * @author znlgis
+ * @version 1.0.0
+ * @since 1.0.0
  */
 public class DataSourceException extends OguException {
 

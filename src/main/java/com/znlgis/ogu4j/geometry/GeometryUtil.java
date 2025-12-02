@@ -33,6 +33,10 @@ import java.util.List;
  * 提供基于JTS和ESRI Geometry API的几何创建、转换、属性查询、空间关系判断和空间分析功能。
  * 所有方法均为静态方法，无需实例化即可使用。
  * </p>
+ *
+ * @author znlgis
+ * @version 1.0.0
+ * @since 1.0.0
  */
 public class GeometryUtil {
     private GeometryUtil() {

@@ -18,6 +18,10 @@ import java.util.Map;
  * 支持GeoTools和GDAL两种方式访问PostGIS。
  * 所有方法均为静态方法，无需实例化即可使用。
  * </p>
+ *
+ * @author znlgis
+ * @version 1.0.0
+ * @since 1.0.0
  */
 public class PostgisUtil {
     private PostgisUtil() {

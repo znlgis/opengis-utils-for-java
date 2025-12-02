@@ -6,6 +6,10 @@ package com.znlgis.ogu4j.exception;
  * 当请求的操作不被指定的GIS引擎支持时抛出此异常。
  * 例如：使用GeoTools引擎处理FileGDB格式（需要GDAL支持）。
  * </p>
+ *
+ * @author znlgis
+ * @version 1.0.0
+ * @since 1.0.0
  */
 public class EngineNotSupportedException extends OguException {
 

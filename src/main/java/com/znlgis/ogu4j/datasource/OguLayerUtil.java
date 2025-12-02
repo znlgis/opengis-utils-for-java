@@ -17,6 +17,9 @@ import java.util.Map;
  * 通过{@link GisEngineFactory}获取引擎来实现格式转换。
  * </p>
  *
+ * @author znlgis
+ * @version 1.0.0
+ * @since 1.0.0
  * @see com.znlgis.ogu4j.engine.GisEngine
  * @see com.znlgis.ogu4j.engine.GisEngineFactory
  * @see com.znlgis.ogu4j.engine.io.LayerReader

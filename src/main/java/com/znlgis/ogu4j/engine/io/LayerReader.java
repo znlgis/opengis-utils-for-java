@@ -11,6 +11,9 @@ import com.znlgis.ogu4j.engine.model.layer.OguLayer;
  * 支持属性过滤和空间过滤功能。
  * </p>
  *
+ * @author znlgis
+ * @version 1.0.0
+ * @since 1.0.0
  * @see com.znlgis.ogu4j.engine.io.LayerWriter
  * @see com.znlgis.ogu4j.engine.enums.DataFormatType
  */

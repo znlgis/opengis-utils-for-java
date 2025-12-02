@@ -19,6 +19,10 @@ import java.util.Optional;
  * 提供Shapefile文件的校验、编码检测和字段名称格式化功能。
  * 所有方法均为静态方法，无需实例化即可使用。
  * </p>
+ *
+ * @author znlgis
+ * @version 1.0.0
+ * @since 1.0.0
  */
 public class ShpUtil {
     /**

@@ -18,6 +18,10 @@ import java.util.Set;
  * 支持Shapefile、GeoJSON、PostGIS等格式。
  * 纯Java实现，无需额外的本地库依赖。
  * </p>
+ *
+ * @author znlgis
+ * @version 1.0.0
+ * @since 1.0.0
  */
 public class GeoToolsEngine implements GisEngine {
 

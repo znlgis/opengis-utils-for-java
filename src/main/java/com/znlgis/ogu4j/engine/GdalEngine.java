@@ -19,6 +19,10 @@ import java.util.Set;
  * 支持FileGDB、Shapefile、GeoJSON、PostGIS等多种格式。
  * 需要安装GDAL本地库并正确配置环境变量。
  * </p>
+ *
+ * @author znlgis
+ * @version 1.0.0
+ * @since 1.0.0
  */
 public class GdalEngine implements GisEngine {
 

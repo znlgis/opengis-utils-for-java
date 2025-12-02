@@ -11,6 +11,10 @@ import java.io.Serializable;
  * 表示要素的一个属性值，包含字段定义和具体值。
  * 提供多种类型的值获取方法（字符串、整数、浮点数等）。
  * </p>
+ *
+ * @author znlgis
+ * @version 1.0.0
+ * @since 1.0.0
  */
 @Data
 @AllArgsConstructor

@@ -12,6 +12,9 @@ import org.locationtech.jts.geom.Coordinate;
  * 主要用于GeometryUtil.isValid()方法的返回值。
  * </p>
  *
+ * @author znlgis
+ * @version 1.0.0
+ * @since 1.0.0
  * @see com.znlgis.ogu4j.geometry.GeometryUtil#isValid(org.locationtech.jts.geom.Geometry)
  */
 @Data

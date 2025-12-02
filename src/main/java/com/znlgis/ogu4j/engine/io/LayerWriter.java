@@ -12,6 +12,9 @@ import java.util.Map;
  * 每种数据格式可以实现此接口来提供特定的写入逻辑。
  * </p>
  *
+ * @author znlgis
+ * @version 1.0.0
+ * @since 1.0.0
  * @see com.znlgis.ogu4j.engine.io.LayerReader
  * @see com.znlgis.ogu4j.engine.enums.DataFormatType
  */

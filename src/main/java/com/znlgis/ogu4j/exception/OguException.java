@@ -6,6 +6,10 @@ package com.znlgis.ogu4j.exception;
  * 所有OGU4J库抛出的自定义异常的基类。
  * 提供统一的异常处理机制，支持消息传递和异常链。
  * </p>
+ *
+ * @author znlgis
+ * @version 1.0.0
+ * @since 1.0.0
  */
 public class OguException extends Exception {
 

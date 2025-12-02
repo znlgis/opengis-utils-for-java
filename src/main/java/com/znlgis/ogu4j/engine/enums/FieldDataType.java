@@ -13,6 +13,9 @@ import java.time.LocalTime;
  * 提供与GDAL字段类型代码的映射关系，支持类型代码和Java类之间的相互转换。
  * </p>
  *
+ * @author znlgis
+ * @version 1.0.0
+ * @since 1.0.0
  * @see com.znlgis.ogu4j.engine.model.layer.OguField
  */
 @Getter

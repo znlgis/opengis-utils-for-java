@@ -14,6 +14,9 @@ import java.util.List;
  * 主要用于GeometryUtil.isSimple()方法的返回值。
  * </p>
  *
+ * @author znlgis
+ * @version 1.0.0
+ * @since 1.0.0
  * @see com.znlgis.ogu4j.geometry.GeometryUtil#isSimple(org.locationtech.jts.geom.Geometry)
  */
 @Data

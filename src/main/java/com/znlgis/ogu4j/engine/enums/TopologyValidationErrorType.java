@@ -9,6 +9,9 @@ import lombok.Getter;
  * 每种错误类型对应JTS IsValidOp返回的错误代码。
  * </p>
  *
+ * @author znlgis
+ * @version 1.0.0
+ * @since 1.0.0
  * @see com.znlgis.ogu4j.engine.model.TopologyValidationResult
  * @see com.znlgis.ogu4j.geometry.GeometryUtil#isValid(org.locationtech.jts.geom.Geometry)
  */

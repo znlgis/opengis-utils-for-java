@@ -13,6 +13,9 @@ import java.util.List;
  * 主要用于GdalCmdUtil.getGdbDataStructure()方法的返回值。
  * </p>
  *
+ * @author znlgis
+ * @version 1.0.0
+ * @since 1.0.0
  * @see GdalCmdUtil#getGdbDataStructure(String)
  */
 @Data

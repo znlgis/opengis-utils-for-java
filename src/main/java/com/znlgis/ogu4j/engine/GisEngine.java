@@ -16,6 +16,9 @@ import java.util.Map;
  * 使上层业务代码与具体GIS库解耦。
  * </p>
  *
+ * @author znlgis
+ * @version 1.0.0
+ * @since 1.0.0
  * @see com.znlgis.ogu4j.engine.GeoToolsEngine
  * @see com.znlgis.ogu4j.engine.GdalEngine
  */
