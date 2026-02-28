@@ -118,6 +118,8 @@ public class GeoToolsLayerWriter implements LayerWriter {
     }
 
     private void writeShapefile(OguLayer layer, String shpPath) throws OguException {
+        ShapefileDataStore ds = null;
+        FeatureWriter<SimpleFeatureType, SimpleFeature> writer = null;
         try {
             GeometryUtil.excludeSpecialFields(layer.getFields());
             ShpUtil.formatFieldName(layer.getFields());
@@ -127,14 +129,14 @@ public class GeoToolsLayerWriter implements LayerWriter {
             Map<String, Serializable> params = new HashMap<>();
             params.put(ShapefileDataStoreFactory.URLP.key, shapeFile.toURI().toURL());
 
-            ShapefileDataStore ds = (ShapefileDataStore) new ShapefileDataStoreFactory().createNewDataStore(params);
+            ds = (ShapefileDataStore) new ShapefileDataStoreFactory().createNewDataStore(params);
             SimpleFeatureType featureType = featureCollection.getSchema();
             ds.createSchema(featureType);
             Charset charset = StandardCharsets.UTF_8;
             ds.setCharset(charset);
 
             String typeName = ds.getTypeNames()[0];
-            FeatureWriter<SimpleFeatureType, SimpleFeature> writer = ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT);
+            writer = ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT);
 
             try (FeatureIterator<SimpleFeature> features = featureCollection.features()) {
                 while (features.hasNext()) {
@@ -155,13 +157,20 @@ public class GeoToolsLayerWriter implements LayerWriter {
                 }
             }
 
-            writer.close();
-            ds.dispose();
-
             String cpgPath = shpPath.substring(0, shpPath.lastIndexOf(".")) + ".cpg";
             FileUtil.writeString("UTF-8", cpgPath, StandardCharsets.UTF_8);
         } catch (Exception e) {
             throw new DataSourceException("Failed to write Shapefile: " + shpPath, e);
+        } finally {
+            if (writer != null) {
+                try {
+                    writer.close();
+                } catch (Exception ignored) {
+                }
+            }
+            if (ds != null) {
+                ds.dispose();
+            }
         }
     }
 
@@ -187,31 +196,35 @@ public class GeoToolsLayerWriter implements LayerWriter {
     }
 
     private void writePostGIS(OguLayer layer, String connStr, String layerName) throws OguException {
+        ExecutorService executorService = null;
         try {
             GeometryUtil.excludeSpecialFields(layer.getFields());
 
             DbConnBaseModel dbConnBaseModel = PostgisUtil.parseConnectionString(connStr);
             SimpleFeatureCollection featureCollection = toSimpleFeatureCollection(layer);
             SimpleFeatureType simpleFeatureType = featureCollection.getSchema();
-            JDBCDataStore dataStore = PostgisUtil.getPostgisDataStore(dbConnBaseModel);
-            if (!Arrays.asList(dataStore.getTypeNames()).contains(layerName)) {
-                SimpleFeatureTypeBuilder tb = new SimpleFeatureTypeBuilder();
-                tb.init(simpleFeatureType);
-                tb.setName(layerName);
-                dataStore.createSchema(tb.buildFeatureType());
-            }
 
-            SimpleFeatureType featureType = dataStore.getSchema(layerName);
             Map<String, String> fieldMap = new HashMap<>();
-            for (int i = 0; i < featureType.getAttributeCount(); i++) {
-                String wn = featureType.getDescriptor(i).getLocalName();
-                Optional<PropertyDescriptor> first = simpleFeatureType.getDescriptors().stream()
-                        .filter(m -> CharSequenceUtil.equals(m.getName().getLocalPart(), wn, true))
-                        .findFirst();
-                first.ifPresent(propertyDescriptor -> fieldMap.put(wn, propertyDescriptor.getName().getLocalPart()));
-            }
+            JDBCDataStore dataStore = PostgisUtil.getPostgisDataStore(dbConnBaseModel);
+            try {
+                if (!Arrays.asList(dataStore.getTypeNames()).contains(layerName)) {
+                    SimpleFeatureTypeBuilder tb = new SimpleFeatureTypeBuilder();
+                    tb.init(simpleFeatureType);
+                    tb.setName(layerName);
+                    dataStore.createSchema(tb.buildFeatureType());
+                }
 
-            dataStore.dispose();
+                SimpleFeatureType featureType = dataStore.getSchema(layerName);
+                for (int i = 0; i < featureType.getAttributeCount(); i++) {
+                    String wn = featureType.getDescriptor(i).getLocalName();
+                    Optional<PropertyDescriptor> first = simpleFeatureType.getDescriptors().stream()
+                            .filter(m -> CharSequenceUtil.equals(m.getName().getLocalPart(), wn, true))
+                            .findFirst();
+                    first.ifPresent(propertyDescriptor -> fieldMap.put(wn, propertyDescriptor.getName().getLocalPart()));
+                }
+            } finally {
+                dataStore.dispose();
+            }
 
             List<SimpleFeature> features = new ArrayList<>();
             try (FeatureIterator<SimpleFeature> iterator = featureCollection.features()) {
@@ -222,7 +235,7 @@ public class GeoToolsLayerWriter implements LayerWriter {
 
             int batchSize = 1000;
             int count = features.size() / batchSize;
-            ExecutorService executorService = ThreadUtil.newExecutor(count);
+            executorService = ThreadUtil.newExecutor(count);
             for (int i = 0; i <= count; i++) {
                 List<SimpleFeature> subList;
                 if (i == count) {
@@ -232,34 +245,51 @@ public class GeoToolsLayerWriter implements LayerWriter {
                 }
 
                 executorService.execute(() -> {
+                    JDBCDataStore ds = null;
+                    Transaction transaction = null;
+                    FeatureWriter<SimpleFeatureType, SimpleFeature> writer = null;
                     try {
-                        JDBCDataStore ds = PostgisUtil.getPostgisDataStore(dbConnBaseModel);
-                        Transaction transaction = new DefaultTransaction("create");
-                        FeatureWriter<SimpleFeatureType, SimpleFeature> writer = ds.getFeatureWriterAppend(layerName, transaction);
-                        try {
-                            for (SimpleFeature feature : subList) {
-                                writer.hasNext();
-                                SimpleFeature writefeature = writer.next();
-                                writefeature.setDefaultGeometry(feature.getDefaultGeometry());
+                        ds = PostgisUtil.getPostgisDataStore(dbConnBaseModel);
+                        transaction = new DefaultTransaction("create");
+                        writer = ds.getFeatureWriterAppend(layerName, transaction);
 
-                                for (Map.Entry<String, String> kv : fieldMap.entrySet()) {
-                                    writefeature.setAttribute(kv.getKey(), feature.getAttribute(kv.getValue()));
-                                }
+                        for (SimpleFeature feature : subList) {
+                            writer.hasNext();
+                            SimpleFeature writefeature = writer.next();
+                            writefeature.setDefaultGeometry(feature.getDefaultGeometry());
 
-                                writer.write();
+                            for (Map.Entry<String, String> kv : fieldMap.entrySet()) {
+                                writefeature.setAttribute(kv.getKey(), feature.getAttribute(kv.getValue()));
                             }
 
-                            transaction.commit();
-                        } catch (Exception e) {
-                            transaction.rollback();
-                            throw new RuntimeException(e);
-                        } finally {
-                            writer.close();
-                            transaction.close();
+                            writer.write();
+                        }
+
+                        transaction.commit();
+                    } catch (Exception e) {
+                        if (transaction != null) {
+                            try {
+                                transaction.rollback();
+                            } catch (Exception ignored) {
+                            }
+                        }
+                        throw new RuntimeException(e);
+                    } finally {
+                        if (writer != null) {
+                            try {
+                                writer.close();
+                            } catch (Exception ignored) {
+                            }
+                        }
+                        if (transaction != null) {
+                            try {
+                                transaction.close();
+                            } catch (Exception ignored) {
+                            }
+                        }
+                        if (ds != null) {
                             ds.dispose();
                         }
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
                     }
                 });
             }
@@ -268,6 +298,10 @@ public class GeoToolsLayerWriter implements LayerWriter {
             executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
         } catch (Exception e) {
             throw new DataSourceException("Failed to write PostGIS layer: " + layerName, e);
+        } finally {
+            if (executorService != null && !executorService.isShutdown()) {
+                executorService.shutdownNow();
+            }
         }
     }
 

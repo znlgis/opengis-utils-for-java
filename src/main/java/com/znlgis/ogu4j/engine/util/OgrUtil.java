@@ -310,19 +310,21 @@ public class OgrUtil {
             dataSource = OgrUtil.createDataSource(driverType, path);
         }
 
-        Layer layer = OgrUtil.getLayer(dataSource, layerName);
-        if (layer == null) {
-            layer = OgrUtil.createLayer(dataSource, layerName, oguLayer.getWkid(), oguLayer.getGeometryType(), options);
-        }
-
-        for (OguField field : oguLayer.getFields()) {
-            if (layer.GetLayerDefn().GetFieldIndex(field.getName()) < 0) {
-                FieldDefn fieldDefn = new FieldDefn(field.getName(), field.getDataType().getDefaultGdalCode());
-                layer.CreateField(fieldDefn);
+        try {
+            Layer layer = OgrUtil.getLayer(dataSource, layerName);
+            if (layer == null) {
+                layer = OgrUtil.createLayer(dataSource, layerName, oguLayer.getWkid(), oguLayer.getGeometryType(), options);
             }
-        }
 
-        closeDataSource(dataSource);
+            for (OguField field : oguLayer.getFields()) {
+                if (layer.GetLayerDefn().GetFieldIndex(field.getName()) < 0) {
+                    FieldDefn fieldDefn = new FieldDefn(field.getName(), field.getDataType().getDefaultGdalCode());
+                    layer.CreateField(fieldDefn);
+                }
+            }
+        } finally {
+            closeDataSource(dataSource);
+        }
     }
 
     /**
@@ -340,61 +342,63 @@ public class OgrUtil {
      */
     private static void oguFeatures2Layer(DataFormatType driverType, String path, List<OguField> fields, List<OguFeature> features, String layerName) throws EngineNotSupportedException {
         DataSource dataSource = OgrUtil.openDataSource(driverType, path);
-        Layer layer;
-        if (CharSequenceUtil.isNotBlank(layerName)) {
-            layer = OgrUtil.getLayer(dataSource, layerName);
-        } else {
-            layer = OgrUtil.getLayer(dataSource, 0);
-        }
-
-        for (OguField field : fields) {
-            if (layer.GetLayerDefn().GetFieldIndex(field.getName()) < 0) {
-                FieldDefn fieldDefn = new FieldDefn(field.getName(), field.getDataType().getDefaultGdalCode());
-                layer.CreateField(fieldDefn);
+        try {
+            Layer layer;
+            if (CharSequenceUtil.isNotBlank(layerName)) {
+                layer = OgrUtil.getLayer(dataSource, layerName);
+            } else {
+                layer = OgrUtil.getLayer(dataSource, 0);
             }
-        }
 
-        for (OguFeature oguFeature : features) {
-            Feature feature = new Feature(layer.GetLayerDefn());
-            feature.SetGeometry(ogr.CreateGeometryFromWkt(oguFeature.getGeometry()));
-            for (int i = 0; i < layer.GetLayerDefn().GetFieldCount(); i++) {
-                FieldDefn fieldDefn = layer.GetLayerDefn().GetFieldDefn(i);
-                String fieldName = fieldDefn.GetName();
-                Optional<OguFieldValue> kv = oguFeature.getAttributes().stream().filter(kvModel ->
-                        kvModel.getField().getName().equalsIgnoreCase(fieldName)).findFirst();
-                if (!kv.isPresent() || kv.get().getValue() == null) {
-                    continue;
-                }
-                switch (FieldDataType.fieldDataTypeByGdalCode(fieldDefn.GetFieldType())) {
-                    case INTEGER:
-                        feature.SetField(fieldName,
-                                NumberUtil.parseInt(kv.get().getValue().toString()));
-                        break;
-                    case DOUBLE:
-                        feature.SetField(fieldName,
-                                NumberUtil.parseDouble(kv.get().getValue().toString()));
-                        break;
-                    case BINARY:
-                        feature.SetFieldBinaryFromHexString(fieldName,
-                                HexUtil.encodeHexStr((byte[]) kv.get().getValue()));
-                        break;
-                    case LONG:
-                        feature.SetFieldInteger64(i,
-                                NumberUtil.parseLong(kv.get().getValue().toString()));
-                        break;
-                    case DATE:
-                    case TIME:
-                    case DATETIME:
-                    case STRING:
-                    default:
-                        feature.SetField(fieldName, kv.get().getValue().toString());
+            for (OguField field : fields) {
+                if (layer.GetLayerDefn().GetFieldIndex(field.getName()) < 0) {
+                    FieldDefn fieldDefn = new FieldDefn(field.getName(), field.getDataType().getDefaultGdalCode());
+                    layer.CreateField(fieldDefn);
                 }
             }
 
-            layer.CreateFeature(feature);
-        }
+            for (OguFeature oguFeature : features) {
+                Feature feature = new Feature(layer.GetLayerDefn());
+                feature.SetGeometry(ogr.CreateGeometryFromWkt(oguFeature.getGeometry()));
+                for (int i = 0; i < layer.GetLayerDefn().GetFieldCount(); i++) {
+                    FieldDefn fieldDefn = layer.GetLayerDefn().GetFieldDefn(i);
+                    String fieldName = fieldDefn.GetName();
+                    Optional<OguFieldValue> kv = oguFeature.getAttributes().stream().filter(kvModel ->
+                            kvModel.getField().getName().equalsIgnoreCase(fieldName)).findFirst();
+                    if (!kv.isPresent() || kv.get().getValue() == null) {
+                        continue;
+                    }
+                    switch (FieldDataType.fieldDataTypeByGdalCode(fieldDefn.GetFieldType())) {
+                        case INTEGER:
+                            feature.SetField(fieldName,
+                                    NumberUtil.parseInt(kv.get().getValue().toString()));
+                            break;
+                        case DOUBLE:
+                            feature.SetField(fieldName,
+                                    NumberUtil.parseDouble(kv.get().getValue().toString()));
+                            break;
+                        case BINARY:
+                            feature.SetFieldBinaryFromHexString(fieldName,
+                                    HexUtil.encodeHexStr((byte[]) kv.get().getValue()));
+                            break;
+                        case LONG:
+                            feature.SetFieldInteger64(i,
+                                    NumberUtil.parseLong(kv.get().getValue().toString()));
+                            break;
+                        case DATE:
+                        case TIME:
+                        case DATETIME:
+                        case STRING:
+                        default:
+                            feature.SetField(fieldName, kv.get().getValue().toString());
+                    }
+                }
 
-        closeDataSource(dataSource);
+                layer.CreateFeature(feature);
+            }
+        } finally {
+            closeDataSource(dataSource);
+        }
     }
 
     /**
@@ -414,25 +418,31 @@ public class OgrUtil {
         int batchSize = 1000;
         int count = oguLayer.getFeatures().size() / batchSize;
         ExecutorService executorService = ThreadUtil.newExecutor(count);
-        for (int j = 0; j <= count; j++) {
-            List<OguFeature> subList;
-            if (j == count) {
-                subList = oguLayer.getFeatures().subList(j * batchSize, oguLayer.getFeatures().size());
-            } else {
-                subList = oguLayer.getFeatures().subList(j * batchSize, (j + 1) * batchSize);
+        try {
+            for (int j = 0; j <= count; j++) {
+                List<OguFeature> subList;
+                if (j == count) {
+                    subList = oguLayer.getFeatures().subList(j * batchSize, oguLayer.getFeatures().size());
+                } else {
+                    subList = oguLayer.getFeatures().subList(j * batchSize, (j + 1) * batchSize);
+                }
+
+                executorService.execute(() -> {
+                    try {
+                        oguFeatures2Layer(driverType, path, oguLayer.getFields(), subList, layerName);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                });
             }
 
-            executorService.execute(() -> {
-                try {
-                    oguFeatures2Layer(driverType, path, oguLayer.getFields(), subList, layerName);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            });
+            executorService.shutdown();
+            executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } finally {
+            if (!executorService.isShutdown()) {
+                executorService.shutdownNow();
+            }
         }
-
-        executorService.shutdown();
-        executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
     }
 
     /**
@@ -495,9 +505,11 @@ public class OgrUtil {
      */
     public static OguLayer layer2OguLayer(DataFormatType driverType, String path, String layerName, String attributeFilter, String spatialFilterWkt) throws EngineNotSupportedException {
         DataSource dataSource = OgrUtil.openDataSource(driverType, path);
-        Layer layer = OgrUtil.getLayer(dataSource, layerName);
-        OguLayer oguLayer = OgrUtil.layer2OguLayer(layer, attributeFilter, spatialFilterWkt);
-        OgrUtil.closeDataSource(dataSource);
-        return oguLayer;
+        try {
+            Layer layer = OgrUtil.getLayer(dataSource, layerName);
+            return OgrUtil.layer2OguLayer(layer, attributeFilter, spatialFilterWkt);
+        } finally {
+            OgrUtil.closeDataSource(dataSource);
+        }
     }
 }
