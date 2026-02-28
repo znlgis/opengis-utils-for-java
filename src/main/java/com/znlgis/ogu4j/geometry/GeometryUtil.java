@@ -53,6 +53,9 @@ public class GeometryUtil {
      */
     @SneakyThrows
     public static org.locationtech.jts.geom.Geometry wkt2Geometry(String wkt) {
+        if (wkt == null || wkt.isEmpty()) {
+            return null;
+        }
         WKTReader2 reader = new WKTReader2();
         return reader.read(wkt);
     }

@@ -104,18 +104,22 @@ public class GeoToolsLayerReader implements LayerReader {
 
     private OguLayer readShapefile(String shpPath, String attributeFilter, String spatialFilterWkt)
             throws OguException {
+        ShapefileDataStore shpDataStore = null;
         try {
             Charset shpCharset = ShpUtil.check(shpPath);
             File file = new File(shpPath);
-            ShapefileDataStore shpDataStore = new ShapefileDataStore(file.toURI().toURL());
+            shpDataStore = new ShapefileDataStore(file.toURI().toURL());
             shpDataStore.setCharset(shpCharset);
             String typeName = shpDataStore.getTypeNames()[0];
             SimpleFeatureSource source = shpDataStore.getFeatureSource(typeName);
             SimpleFeatureCollection simpleFeatureCollection = GeotoolsUtil.filter(source, attributeFilter, spatialFilterWkt);
-            shpDataStore.dispose();
             return fromSimpleFeatureCollection(simpleFeatureCollection);
         } catch (Exception e) {
             throw new DataSourceException("Failed to read Shapefile: " + shpPath, e);
+        } finally {
+            if (shpDataStore != null) {
+                shpDataStore.dispose();
+            }
         }
     }
 
@@ -144,15 +148,19 @@ public class GeoToolsLayerReader implements LayerReader {
 
     private OguLayer readPostGIS(String connStr, String layerName, String attributeFilter, String spatialFilterWkt)
             throws OguException {
+        JDBCDataStore dataStore = null;
         try {
             DbConnBaseModel dbConnBaseModel = PostgisUtil.parseConnectionString(connStr);
-            JDBCDataStore dataStore = PostgisUtil.getPostgisDataStore(dbConnBaseModel);
+            dataStore = PostgisUtil.getPostgisDataStore(dbConnBaseModel);
             SimpleFeatureSource source = dataStore.getFeatureSource(layerName);
             SimpleFeatureCollection simpleFeatureCollection = GeotoolsUtil.filter(source, attributeFilter, spatialFilterWkt);
-            dataStore.dispose();
             return fromSimpleFeatureCollection(simpleFeatureCollection);
         } catch (Exception e) {
             throw new DataSourceException("Failed to read PostGIS layer: " + layerName, e);
+        } finally {
+            if (dataStore != null) {
+                dataStore.dispose();
+            }
         }
     }
 

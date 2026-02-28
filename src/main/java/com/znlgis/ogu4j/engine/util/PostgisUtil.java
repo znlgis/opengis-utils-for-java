@@ -170,6 +170,19 @@ public class PostgisUtil {
     }
 
     /**
+     * 验证SQL标识符（表名、schema名）是否合法
+     * <p>
+     * 仅允许字母、数字和下划线，防止SQL注入。
+     * </p>
+     *
+     * @param identifier SQL标识符
+     * @return 是否合法
+     */
+    private static boolean isValidIdentifier(String identifier) {
+        return identifier != null && identifier.matches("^[a-zA-Z_][a-zA-Z0-9_]*$");
+    }
+
+    /**
      * 删除PostGIS图层中的要素
      * <p>
      * 根据SQL WHERE条件删除指定图层中的要素。
@@ -180,20 +193,31 @@ public class PostgisUtil {
      * @param layerName       图层名称（表名）
      * @param whereClause     SQL WHERE子句（不包含WHERE关键字），为null或空时删除所有要素
      * @return 删除的要素数量
+     * @throws IllegalArgumentException 如果表名或schema名包含非法字符
      */
     @SneakyThrows
     public static int deletePostgisFeatures(DbConnBaseModel dbConnBaseModel, String layerName, String whereClause) {
-        JDBCDataStore dataStore = PostgisUtil.getPostgisDataStore(dbConnBaseModel);
-        Statement statement = dataStore.getConnection(Transaction.AUTO_COMMIT).createStatement();
-
-        String sql = String.format("DELETE FROM %s.%s", dbConnBaseModel.getSchema(), layerName);
-        if (CharSequenceUtil.isNotBlank(whereClause)) {
-            sql += " WHERE " + whereClause;
+        if (!isValidIdentifier(layerName)) {
+            throw new IllegalArgumentException("Invalid layer name: " + layerName);
         }
-        int count = statement.executeUpdate(sql);
+        if (!isValidIdentifier(dbConnBaseModel.getSchema())) {
+            throw new IllegalArgumentException("Invalid schema name: " + dbConnBaseModel.getSchema());
+        }
 
-        statement.close();
-        dataStore.dispose();
-        return count;
+        JDBCDataStore dataStore = PostgisUtil.getPostgisDataStore(dbConnBaseModel);
+        try {
+            Statement statement = dataStore.getConnection(Transaction.AUTO_COMMIT).createStatement();
+            try {
+                String sql = String.format("DELETE FROM \"%s\".\"%s\"", dbConnBaseModel.getSchema(), layerName);
+                if (CharSequenceUtil.isNotBlank(whereClause)) {
+                    sql += " WHERE " + whereClause;
+                }
+                return statement.executeUpdate(sql);
+            } finally {
+                statement.close();
+            }
+        } finally {
+            dataStore.dispose();
+        }
     }
 }
