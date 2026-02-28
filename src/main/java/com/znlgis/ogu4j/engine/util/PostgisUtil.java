@@ -188,6 +188,9 @@ public class PostgisUtil {
      * 根据SQL WHERE条件删除指定图层中的要素。
      * 如果不指定条件，将删除图层中的所有要素。
      * </p>
+     * <p>
+     * 注意：whereClause参数为原始SQL片段，调用方需确保其安全性以防止SQL注入。
+     * </p>
      *
      * @param dbConnBaseModel 数据库连接配置
      * @param layerName       图层名称（表名）

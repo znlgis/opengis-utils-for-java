@@ -246,34 +246,47 @@ public class GeoToolsLayerWriter implements LayerWriter {
 
                 executorService.execute(() -> {
                     JDBCDataStore ds = null;
+                    Transaction transaction = null;
+                    FeatureWriter<SimpleFeatureType, SimpleFeature> writer = null;
                     try {
                         ds = PostgisUtil.getPostgisDataStore(dbConnBaseModel);
-                        Transaction transaction = new DefaultTransaction("create");
-                        FeatureWriter<SimpleFeatureType, SimpleFeature> writer = ds.getFeatureWriterAppend(layerName, transaction);
-                        try {
-                            for (SimpleFeature feature : subList) {
-                                writer.hasNext();
-                                SimpleFeature writefeature = writer.next();
-                                writefeature.setDefaultGeometry(feature.getDefaultGeometry());
+                        transaction = new DefaultTransaction("create");
+                        writer = ds.getFeatureWriterAppend(layerName, transaction);
 
-                                for (Map.Entry<String, String> kv : fieldMap.entrySet()) {
-                                    writefeature.setAttribute(kv.getKey(), feature.getAttribute(kv.getValue()));
-                                }
+                        for (SimpleFeature feature : subList) {
+                            writer.hasNext();
+                            SimpleFeature writefeature = writer.next();
+                            writefeature.setDefaultGeometry(feature.getDefaultGeometry());
 
-                                writer.write();
+                            for (Map.Entry<String, String> kv : fieldMap.entrySet()) {
+                                writefeature.setAttribute(kv.getKey(), feature.getAttribute(kv.getValue()));
                             }
 
-                            transaction.commit();
-                        } catch (Exception e) {
-                            transaction.rollback();
-                            throw new RuntimeException(e);
-                        } finally {
-                            writer.close();
-                            transaction.close();
+                            writer.write();
                         }
+
+                        transaction.commit();
                     } catch (Exception e) {
+                        if (transaction != null) {
+                            try {
+                                transaction.rollback();
+                            } catch (Exception ignored) {
+                            }
+                        }
                         throw new RuntimeException(e);
                     } finally {
+                        if (writer != null) {
+                            try {
+                                writer.close();
+                            } catch (Exception ignored) {
+                            }
+                        }
+                        if (transaction != null) {
+                            try {
+                                transaction.close();
+                            } catch (Exception ignored) {
+                            }
+                        }
                         if (ds != null) {
                             ds.dispose();
                         }
