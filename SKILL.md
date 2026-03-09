@@ -110,7 +110,7 @@ OguLayer layer = OguLayerUtil.readLayer(
     "layerName", null, null, GisEngineType.GDAL
 );
 
-// Read PostGIS
+// Read PostGIS (use environment variables or secure config for credentials in production)
 String connStr = "PG: host=localhost port=5432 dbname=gisdb user=postgres password=*** active_schema=public";
 OguLayer layer = OguLayerUtil.readLayer(
     DataFormatType.POSTGIS, connStr,
@@ -214,10 +214,10 @@ layer.validate();  // throws LayerValidationException if invalid
 String json = layer.toJSON();
 OguLayer restored = OguLayer.fromJSON(json);
 
-// Filter features
+// Filter features by attribute
 List<OguFeature> filtered = layer.filter(f -> {
     Integer pop = f.getAttribute("population").getIntValue();
-    return pop != null && pop > 10000000;
+    return pop != null && pop > 10000000;  // population > 10 million
 });
 
 // Access feature attributes
@@ -658,7 +658,7 @@ OguLayer layer = OguLayerUtil.readLayer(
     null, null, null, GisEngineType.AUTO
 );
 
-// Step 2: Filter features by attribute
+// Step 2: Filter features by area > 10,000 square units
 List<OguFeature> largeParcels = layer.filter(f -> {
     Geometry geom = GeometryUtil.wkt2Geometry(f.getGeometry());
     return GeometryUtil.area(geom) > 10000;
