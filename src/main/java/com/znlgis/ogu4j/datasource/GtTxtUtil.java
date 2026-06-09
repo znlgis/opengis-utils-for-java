@@ -225,6 +225,9 @@ public class GtTxtUtil {
                 currKey = txtLine;
                 txtMap.put(txtLine, new ArrayList<>());
             } else {
+                if (currKey == null) {
+                    throw new RuntimeException("txt文件格式不正确，内容行出现在任何节之前：" + txtLine);
+                }
                 txtMap.get(currKey).add(txtLine);
             }
         }
@@ -334,6 +337,9 @@ public class GtTxtUtil {
                 currZbKey = line;
                 zbMap.put(currZbKey, new ArrayList<>());
             } else {
+                if (currZbKey == null) {
+                    throw new RuntimeException("txt文件格式不正确，坐标行出现在任何地块之前：" + line);
+                }
                 zbMap.get(currZbKey).add(line);
             }
         }
