@@ -23,7 +23,7 @@ public class EncodingUtil {
     }
 
     /**
-     * 获取文件编码,默认GBK
+     * 获取文件编码,无法识别时默认UTF-8
      *
      * @param file 文件
      * @return 编码
