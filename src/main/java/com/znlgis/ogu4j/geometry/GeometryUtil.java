@@ -596,8 +596,14 @@ public class GeometryUtil {
      * @return 并集
      */
     public static org.locationtech.jts.geom.Geometry union(org.locationtech.jts.geom.Geometry... geoms) {
+        if (geoms == null || geoms.length == 0) {
+            throw new IllegalArgumentException("geoms 不能为空");
+        }
         org.locationtech.jts.geom.Geometry result = null;
         for (org.locationtech.jts.geom.Geometry g : geoms) {
+            if (g == null) {
+                continue;
+            }
             if (result == null) {
                 result = g;
             } else {
