@@ -216,11 +216,14 @@ public class OgrUtil {
         Feature feature = layer.GetNextFeature();
         while (feature != null) {
             OguFeature oguFeature = new OguFeature();
-            String wkt = feature.GetGeometryRef().ExportToWkt();
-            oguFeature.setGeometry(GeometryUtil.simplifyWkt(wkt, oguLayer.getWkid()));
+            Geometry geometryRef = feature.GetGeometryRef();
+            if (geometryRef != null) {
+                String wkt = geometryRef.ExportToWkt();
+                oguFeature.setGeometry(GeometryUtil.simplifyWkt(wkt, oguLayer.getWkid()));
 
-            if (oguLayer.getGeometryType() == null) {
-                oguLayer.setGeometryType(GeometryUtil.geometryType(GeometryUtil.wkt2Geometry(wkt)));
+                if (oguLayer.getGeometryType() == null) {
+                    oguLayer.setGeometryType(GeometryUtil.geometryType(GeometryUtil.wkt2Geometry(wkt)));
+                }
             }
 
             long id = feature.GetFID();

@@ -329,6 +329,9 @@ public class GtTxtUtil {
 
         // 解析地块坐标
         List<String> coordLines = txtMap.get("[地块坐标]");
+        if (coordLines == null) {
+            throw new RuntimeException("txt文件格式不正确，缺少[地块坐标]数据段");
+        }
         List<OguFeature> features = new ArrayList<>();
         LinkedHashMap<String, List<String>> zbMap = new LinkedHashMap<>();
         String currZbKey = null;
