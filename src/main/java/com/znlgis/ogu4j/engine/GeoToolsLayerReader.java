@@ -39,6 +39,7 @@ import org.locationtech.jts.geom.Geometry;
 import java.io.File;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -207,6 +208,11 @@ public class GeoToolsLayerReader implements LayerReader {
         }
         layer.setFields(fields);
 
+        Map<String, OguField> fieldByName = new HashMap<>();
+        for (OguField field : fields) {
+            fieldByName.put(field.getName(), field);
+        }
+
         List<OguFeature> features = new ArrayList<>();
         try (FeatureIterator<SimpleFeature> featureIterator = featureCollection.features()) {
             while (featureIterator.hasNext()) {
@@ -219,18 +225,20 @@ public class GeoToolsLayerReader implements LayerReader {
                 }
                 oguFeature.setId(id);
 
-                String wkt = ((Geometry) feature.getDefaultGeometry()).toText();
-                oguFeature.setGeometry(GeometryUtil.simplifyWkt(wkt, layer.getWkid()));
+                Geometry defaultGeometry = (Geometry) feature.getDefaultGeometry();
+                if (defaultGeometry != null) {
+                    String wkt = defaultGeometry.toText();
+                    oguFeature.setGeometry(GeometryUtil.simplifyWkt(wkt, layer.getWkid()));
 
-                if (layer.getGeometryType() == null) {
-                    layer.setGeometryType(GeometryUtil.geometryType(GeometryUtil.wkt2Geometry(wkt)));
+                    if (layer.getGeometryType() == null) {
+                        layer.setGeometryType(GeometryUtil.geometryType(GeometryUtil.wkt2Geometry(wkt)));
+                    }
                 }
 
                 List<OguFieldValue> fieldValues = new ArrayList<>();
                 for (int i = 0; i < feature.getAttributeCount(); i++) {
                     String fn = featureType.getDescriptor(i).getLocalName();
-                    OguField field = fields.stream().filter(f ->
-                            CharSequenceUtil.equals(f.getName(), fn, true)).findFirst().orElse(null);
+                    OguField field = fieldByName.get(fn);
                     if (field != null) {
                         OguFieldValue fieldValue = new OguFieldValue();
                         fieldValue.setField(field);

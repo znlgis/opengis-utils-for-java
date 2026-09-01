@@ -8,6 +8,7 @@ import cn.hutool.core.util.NumberUtil;
 import com.znlgis.ogu4j.engine.enums.DataFormatType;
 import com.znlgis.ogu4j.engine.enums.FieldDataType;
 import com.znlgis.ogu4j.engine.enums.GeometryType;
+import com.znlgis.ogu4j.exception.DataSourceException;
 import com.znlgis.ogu4j.exception.EngineNotSupportedException;
 import com.znlgis.ogu4j.geometry.GeometryUtil;
 import com.znlgis.ogu4j.engine.model.layer.OguFeature;
@@ -25,6 +26,7 @@ import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * GDAL/OGR工具类
@@ -371,29 +373,30 @@ public class OgrUtil {
                     if (!kv.isPresent() || kv.get().getValue() == null) {
                         continue;
                     }
+                    Object value = kv.get().getValue();
                     switch (FieldDataType.fieldDataTypeByGdalCode(fieldDefn.GetFieldType())) {
                         case INTEGER:
                             feature.SetField(fieldName,
-                                    NumberUtil.parseInt(kv.get().getValue().toString()));
+                                    NumberUtil.parseInt(value.toString()));
                             break;
                         case DOUBLE:
                             feature.SetField(fieldName,
-                                    NumberUtil.parseDouble(kv.get().getValue().toString()));
+                                    NumberUtil.parseDouble(value.toString()));
                             break;
                         case BINARY:
                             feature.SetFieldBinaryFromHexString(fieldName,
-                                    HexUtil.encodeHexStr((byte[]) kv.get().getValue()));
+                                    HexUtil.encodeHexStr((byte[]) value));
                             break;
                         case LONG:
                             feature.SetFieldInteger64(i,
-                                    NumberUtil.parseLong(kv.get().getValue().toString()));
+                                    NumberUtil.parseLong(value.toString()));
                             break;
                         case DATE:
                         case TIME:
                         case DATETIME:
                         case STRING:
                         default:
-                            feature.SetField(fieldName, kv.get().getValue().toString());
+                            feature.SetField(fieldName, value.toString());
                     }
                 }
 
@@ -419,22 +422,24 @@ public class OgrUtil {
     @SneakyThrows
     private static void oguLayer2Layer4Postgis(DataFormatType driverType, String path, OguLayer oguLayer, String layerName) {
         int batchSize = 1000;
-        int count = oguLayer.getFeatures().size() / batchSize;
-        ExecutorService executorService = ThreadUtil.newExecutor(count);
+        int size = oguLayer.getFeatures().size();
+        int batchCount = (size + batchSize - 1) / batchSize;
+        if (batchCount == 0) {
+            return;
+        }
+        ExecutorService executorService = ThreadUtil.newExecutor(batchCount);
+        AtomicReference<Throwable> failure = new AtomicReference<>();
         try {
-            for (int j = 0; j <= count; j++) {
-                List<OguFeature> subList;
-                if (j == count) {
-                    subList = oguLayer.getFeatures().subList(j * batchSize, oguLayer.getFeatures().size());
-                } else {
-                    subList = oguLayer.getFeatures().subList(j * batchSize, (j + 1) * batchSize);
-                }
+            for (int j = 0; j < batchCount; j++) {
+                int from = j * batchSize;
+                int to = Math.min(from + batchSize, size);
+                List<OguFeature> subList = oguLayer.getFeatures().subList(from, to);
 
                 executorService.execute(() -> {
                     try {
                         oguFeatures2Layer(driverType, path, oguLayer.getFields(), subList, layerName);
                     } catch (Exception e) {
-                        throw new RuntimeException(e);
+                        failure.compareAndSet(null, e);
                     }
                 });
             }
@@ -445,6 +450,10 @@ public class OgrUtil {
             if (!executorService.isShutdown()) {
                 executorService.shutdownNow();
             }
+        }
+        Throwable throwable = failure.get();
+        if (throwable != null) {
+            throw new DataSourceException("Failed to write PostGIS layer: " + layerName, throwable);
         }
     }
 

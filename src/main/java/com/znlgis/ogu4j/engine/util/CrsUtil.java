@@ -25,7 +25,9 @@ import org.geotools.api.referencing.operation.MathTransform;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 坐标参考系（CRS）工具类
@@ -40,7 +42,7 @@ import java.util.Map;
  * @since 1.0.0
  */
 public class CrsUtil {
-    private static Map<Integer, CoordinateReferenceSystem> supportedCRSList;
+    private static final Map<Integer, CoordinateReferenceSystem> SUPPORTED_CRS_LIST = new ConcurrentHashMap<>();
 
     private CrsUtil() {
         throw new IllegalStateException("Utility class");
@@ -53,15 +55,12 @@ public class CrsUtil {
      */
     @SneakyThrows
     private static Map<Integer, CoordinateReferenceSystem> supportedCRSList() {
-        if (supportedCRSList != null && !supportedCRSList.isEmpty()) {
-            return supportedCRSList;
+        if (SUPPORTED_CRS_LIST.isEmpty()) {
+            for (int i = 4490; i < 4555; i++) {
+                SUPPORTED_CRS_LIST.putIfAbsent(i, CRS.decode("EPSG:" + i, true));
+            }
         }
-
-        supportedCRSList = new HashMap<>();
-        for (int i = 4490; i < 4555; i++) {
-            supportedCRSList.put(i, CRS.decode("EPSG:" + i, true));
-        }
-        return supportedCRSList;
+        return SUPPORTED_CRS_LIST;
     }
 
     /**
@@ -81,13 +80,14 @@ public class CrsUtil {
      */
     @SneakyThrows
     public static Map.Entry<Integer, CoordinateReferenceSystem> getSupportedCRS(Integer wkid) {
-        if (!supportedCRSList().containsKey(wkid)) {
-            CoordinateReferenceSystem crs = CRS.decode("EPSG:" + wkid, true);
-            supportedCRSList().put(wkid, crs);
-            return new HashMap.SimpleEntry<>(wkid, crs);
-        }
-
-        return new HashMap.SimpleEntry<>(wkid, supportedCRSList().get(wkid));
+        CoordinateReferenceSystem crs = supportedCRSList().computeIfAbsent(wkid, k -> {
+            try {
+                return CRS.decode("EPSG:" + k, true);
+            } catch (Exception e) {
+                throw new RuntimeException("不支持的坐标系: EPSG:" + k, e);
+            }
+        });
+        return new HashMap.SimpleEntry<>(wkid, crs);
     }
 
     /**
@@ -251,7 +251,7 @@ public class CrsUtil {
      * @return 坐标转换后的几何对象
      */
     public static Geometry transform(Geometry geometry, Integer sourceWkid, Integer targetWkid) {
-        if (sourceWkid.equals(targetWkid)) {
+        if (sourceWkid == null || sourceWkid.equals(targetWkid)) {
             return geometry;
         }
 
@@ -342,14 +342,22 @@ public class CrsUtil {
         if (sourceCrs instanceof ProjectedCRS sourceProjectedCRS && targetCrs instanceof ProjectedCRS targetProjectedCRS) {
             boolean isSameBaseCRS = isSameCRS(sourceProjectedCRS.getBaseCRS(), targetProjectedCRS.getBaseCRS());
             boolean isSameConversionFromBase = true;
-            ParameterValueGroup sourceParameterValueGroup = sourceProjectedCRS.getConversionFromBase().getParameterValues();
-            ParameterValueGroup targetParameterValueGroup = targetProjectedCRS.getConversionFromBase().getParameterValues();
-            for (int i = 0; i < sourceParameterValueGroup.values().size(); i++) {
-                GeneralParameterValue s = sourceParameterValueGroup.values().get(i);
-                GeneralParameterValue t = targetParameterValueGroup.values().get(i);
-                if (!s.equals(t)) {
+            ParameterValueGroup sourceParameterValueGroup = sourceProjectedCRS.getConversionFromBase() == null
+                    ? null : sourceProjectedCRS.getConversionFromBase().getParameterValues();
+            ParameterValueGroup targetParameterValueGroup = targetProjectedCRS.getConversionFromBase() == null
+                    ? null : targetProjectedCRS.getConversionFromBase().getParameterValues();
+            if (sourceParameterValueGroup != null && targetParameterValueGroup != null) {
+                List<GeneralParameterValue> sourceValues = sourceParameterValueGroup.values();
+                List<GeneralParameterValue> targetValues = targetParameterValueGroup.values();
+                if (sourceValues.size() != targetValues.size()) {
                     isSameConversionFromBase = false;
-                    break;
+                } else {
+                    for (int i = 0; i < sourceValues.size(); i++) {
+                        if (!sourceValues.get(i).equals(targetValues.get(i))) {
+                            isSameConversionFromBase = false;
+                            break;
+                        }
+                    }
                 }
             }
             return isSameBaseCRS && isSameConversionFromBase;

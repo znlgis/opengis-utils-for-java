@@ -905,10 +905,10 @@ public class GeometryUtil {
      * @return 多边形化后的几何
      */
     public static org.locationtech.jts.geom.Geometry polygonize(org.locationtech.jts.geom.Geometry geom) {
-        List lines = LineStringExtracter.getLines(geom);
+        List<LineString> lines = LineStringExtracter.getLines(geom);
         Polygonizer polygonizer = new Polygonizer();
         polygonizer.add(lines);
-        Collection polys = polygonizer.getPolygons();
+        Collection<org.locationtech.jts.geom.Polygon> polys = polygonizer.getPolygons();
         org.locationtech.jts.geom.Polygon[] polyArray = org.locationtech.jts.geom.GeometryFactory.toPolygonArray(polys);
         return geom.getFactory().createGeometryCollection(polyArray);
     }
@@ -982,7 +982,15 @@ public class GeometryUtil {
      */
     public static GeometryType geometryTypeWkt(String wkt) {
         com.esri.core.geometry.Geometry geom = createEsriGeometryByWkt(wkt);
-        return GeometryType.valueOf(geom.getType().name().toUpperCase());
+        String typeName = geom.getType().name();
+        if ("Polyline".equalsIgnoreCase(typeName)) {
+            return GeometryType.LINESTRING;
+        }
+        GeometryType geometryType = GeometryType.valueOfByTypeName(typeName);
+        if (geometryType == null) {
+            throw new IllegalArgumentException("不支持的几何类型: " + typeName);
+        }
+        return geometryType;
     }
 
     /**

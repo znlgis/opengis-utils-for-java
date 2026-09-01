@@ -52,6 +52,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * GeoTools图层写入器
@@ -234,15 +235,17 @@ public class GeoToolsLayerWriter implements LayerWriter {
             }
 
             int batchSize = 1000;
-            int count = features.size() / batchSize;
-            executorService = ThreadUtil.newExecutor(count);
-            for (int i = 0; i <= count; i++) {
-                List<SimpleFeature> subList;
-                if (i == count) {
-                    subList = features.subList(i * batchSize, features.size());
-                } else {
-                    subList = features.subList(i * batchSize, (i + 1) * batchSize);
-                }
+            int size = features.size();
+            int batchCount = (size + batchSize - 1) / batchSize;
+            if (batchCount == 0) {
+                return;
+            }
+            AtomicReference<Throwable> failure = new AtomicReference<>();
+            executorService = ThreadUtil.newExecutor(batchCount);
+            for (int i = 0; i < batchCount; i++) {
+                int from = i * batchSize;
+                int to = Math.min(from + batchSize, size);
+                List<SimpleFeature> subList = features.subList(from, to);
 
                 executorService.execute(() -> {
                     JDBCDataStore ds = null;
@@ -273,7 +276,7 @@ public class GeoToolsLayerWriter implements LayerWriter {
                             } catch (Exception ignored) {
                             }
                         }
-                        throw new RuntimeException(e);
+                        failure.compareAndSet(null, e);
                     } finally {
                         if (writer != null) {
                             try {
@@ -296,6 +299,10 @@ public class GeoToolsLayerWriter implements LayerWriter {
 
             executorService.shutdown();
             executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+            Throwable throwable = failure.get();
+            if (throwable != null) {
+                throw new DataSourceException("Failed to write PostGIS layer: " + layerName, throwable);
+            }
         } catch (Exception e) {
             throw new DataSourceException("Failed to write PostGIS layer: " + layerName, e);
         } finally {
